@@ -12,7 +12,7 @@ O **Brechó Estudantil** aproxima alunos que possuem itens parados de colegas qu
 🏫 Os dois combinam  →  ✅ concluem pessoalmente
 ```
 
-## Como funciona
+## Como funciona1
 
 1. O aluno anunciante cadastra o item com nome, descrição, categoria, estado de conservação e preço opcional.
 2. Outros alunos consultam os itens disponíveis, pesquisam por texto e usam filtros.
