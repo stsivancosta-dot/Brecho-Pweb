@@ -229,16 +229,166 @@ O painel pode apresentar três indicadores: total disponível, total reservado e
 - agrupamento por categoria;
 - agrupamento por status.
 
+### 7.7 Wireframes textuais
+
+Os wireframes abaixo representam uma tela FHD de `1920 x 1080 px`. A barra lateral ocupa aproximadamente `360 px`; o conteúdo principal ocupa o restante. Eles definem estrutura e navegação, não o visual final.
+
+**Padrão visual:** o menu lateral usa os nomes `Menu`, `Brechó`, `Vitrine` e `Perfil`. A logo fica no canto superior direito. Não incluir chat, imagens, pagamentos, frete ou cadastro das listas fixas.
+
+| Item lateral | Tela correspondente |
+| --- | --- |
+| `Menu` | painel de indicadores |
+| `Brechó` | catálogo e detalhe do anúncio |
+| `Vitrine` | anúncios próprios, criação e edição |
+| `Perfil` | dados do aluno e histórico |
+
+#### Login
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                               [ LOGO BRECHÓ ESTUDANTIL ]     │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                              │
+│                                      BEM-VINDO AO BRECHÓ ESTUDANTIL                                          │
+│                                                                                                              │
+│                                      E-mail  [_______________________________]                               │
+│                                      Senha   [_______________________________]                               │
+│                                                                                                              │
+│                                                   [ Entrar ]                                                 │
+│                                                                                                              │
+│                                      Credenciais inválidas aparecem aqui.                                    │
+│                                                                                                              │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+A barra lateral aparece somente depois da autenticação, pois ela apresenta o aluno conectado.
+
+#### Catálogo
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  ●  Ana Silva                  │  BRECHÓ - Catálogo                              [ LOGO BRECHÓ ]             │
+│     Aluna interessada          │                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  MENU PRINCIPAL                │  [ Buscar item... ]  [ Categoria ▾ ]  [ Conservação ▾ ]                     │
+│                                │                                                                             │
+│  □  Menu                       │  ┌───────────────────────────┐  ┌───────────────────────────┐               │
+│  ▣  Brechó                     │  │ Livro de matemática        │  │ Uniforme escolar           │             │
+│  □  Vitrine                    │  │ Livro · Bom · Troca        │  │ Uniforme · Usado · R$ 35   │             │
+│  □  Perfil                     │  │ [ Ver detalhes ]           │  │ [ Ver detalhes ]           │             │
+│                                │  └───────────────────────────┘  └───────────────────────────┘               │
+│                                │                                                                             │
+│                                │  12 itens disponíveis                                             1 2 ›     │
+│                                │                                                                             │
+│                                │                                                                             │
+│          [ Sair ]              │                                                                             │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Detalhe do anúncio
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  ●  Ana Silva                  │  ← Brechó  /  Livro de matemática                  [ LOGO BRECHÓ ]          │
+│     Aluna interessada          │                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  MENU PRINCIPAL                │  Livro de matemática                                                        │
+│                                │  Livro · Bom estado · Disponível                                            │
+│  □  Menu                       │                                                                             │
+│  ▣  Brechó                     │  Descrição                                                                  │
+│  □  Vitrine                    │  Livro usado, sem páginas rasgadas.                                         │
+│  □  Perfil                     │                                                                             │
+│                                │  Valor: Troca               Anunciante: Ana Silva                           │
+│                                │                                                                             │
+│                                │                         [ Reservar item ]                                   │
+│                                │                                                                             │
+│          [ Sair ]              │  A reserva expira em 3 dias se não for confirmada.                          │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+O botão de reserva só aparece para o perfil interessado e para anúncio disponível de outro aluno.
+
+#### Formulário de anúncio
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  ●  Ana Silva                  │  VITRINE - Novo anúncio                            [ LOGO BRECHÓ ]          │
+│     Aluna anunciante           │                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  MENU PRINCIPAL                │  Item        [____________________________________________________]         │
+│                                │                                                                             │
+│  □  Menu                       │  Categoria   [ Selecione ▾ ]       Conservação [ Selecione ▾ ]              │
+│  □  Brechó                     │                                                                             │
+│  ▣  Vitrine                    │  Preço       [__________]          0 = Troca                                │
+│  □  Perfil                     │                                                                             │
+│                                │  Descrição   [____________________________________________________]         │
+│                                │              [____________________________________________________]         │
+│                                │                                                                             │
+│                                │  [ Cancelar ]                                  [ Salvar anúncio ]           │
+│          [ Sair ]              │                                                                             │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Na edição, os mesmos campos são exibidos. Anúncios concluídos ficam somente para leitura.
+
+#### Meu perfil
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  ●  Ana Silva                  │  PERFIL                                            [ LOGO BRECHÓ ]          │
+│     Aluna anunciante           │                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  MENU PRINCIPAL                │  Ana Silva · ana@escola.com · Anunciante                                    │
+│                                │                                                                             │
+│  □  Menu                       │  Meus anúncios ativos                              [ + Novo anúncio ]       │
+│  □  Brechó                     │  ──────────────────────────────────────────────────────────────────         │
+│  □  Vitrine                    │  Livro de matemática      Disponível                   [ Editar ]           │
+│  ▣  Perfil                     │  Uniforme escolar         Reservado                [ Confirmar ]            │
+│                                │                                                                             │
+│                                │  Histórico                                                                  │
+│                                │  Caderno universitário    Concluído                18/08/2026               │
+│                                │                                                                             │
+│          [ Sair ]              │                                                                             │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+Para o perfil interessado, a seção central mostra reservas e negociações concluídas, sem botões de criar ou editar anúncio.
+
+#### Painel
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  ●  Ana Silva                  │  MENU                                              [ LOGO BRECHÓ ]          │
+│     Aluna interessada          │                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  MENU PRINCIPAL                │  Visão geral do Brechó                                                      │
+│                                │                                                                             │
+│  ▣  Menu                       │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐                 │
+│  □  Brechó                     │  │ 12             │  │ 3              │  │ 8              │                 │
+│  □  Vitrine                    │  │ Disponíveis    │  │ Reservados     │  │ Concluídos     │                 │
+│  □  Perfil                     │  └────────────────┘  └────────────────┘  └────────────────┘                 │
+│                                │                                                                             │
+│                                │  Por categoria                 Por status                                   │
+│                                │  Livro  6 · Uniforme  5        Disponível  12 · Reservado  3                │
+│                                │  Material  4 · Eletrônico  3   Concluído  8                                 │
+│          [ Sair ]              │                                                                             │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+O painel informa a situação do brechó e não cria uma ação administrativa sobre categorias, estados ou status.
+
 ## 8. Navegação por perfil
 
 ```text
 ANUNCIANTE
-Login -> Meus anúncios -> Criar/Editar -> Confirmar reserva -> Histórico
-                  \-> Catálogo/Painel somente para consulta
+Login -> Menu -> Vitrine -> Criar/Editar -> Confirmar reserva
+            |       \-> Perfil -> Histórico
+            \-> Brechó somente para consulta
 
 INTERESSADO
-Login -> Catálogo -> Detalhe -> Reservar -> Histórico
-              \-> Painel
+Login -> Menu -> Brechó -> Detalhe -> Reservar
+            |       \-> Perfil -> Histórico
+            \-> Vitrine somente para consulta
 ```
 
 O frontend pode esconder ações não permitidas, mas a API sempre deve repetir a verificação.
