@@ -66,3 +66,16 @@ O planejamento do projeto está dividido em três specs:
 - [Requisitos]
 - [Design]
 - [Tarefas]
+
+## Desenvolvimento
+
+Pré-requisito: Node.js 24 ou compatível.
+
+1. Copie .env.example para .env e ajuste as variáveis do PostgreSQL.
+2. Defina JWT_SECRET e DEMO_PASSWORD no arquivo .env; não use senhas reais.
+3. Execute npm run db:migrate para criar a estrutura no PostgreSQL.
+4. Execute npm run db:seed para criar Ana e Bruno como contas de demonstração; ambas usam a senha definida em DEMO_PASSWORD.
+5. Execute npm test para validar regras locais e npm run dev para iniciar a API.
+6. Em outro terminal, execute npm run frontend:dev para abrir a interface.
+
+O projeto usa PostgreSQL real. Não há armazenamento em memória ou simulação de persistência.

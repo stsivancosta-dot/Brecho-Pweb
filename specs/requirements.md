@@ -1,237 +1,205 @@
-# Requirements - Brechó Estudantil
+# Requirements — Brechó Estudantil
 
-## 1. Objetivo
+## 1. Objetivo e problema
 
-O Brechó Estudantil deve organizar a venda, a doação e a troca de itens ligados ao ambiente escolar. A solução conecta alunos que possuem uniformes, materiais, livros, eletrônicos ou outros itens usados com alunos interessados nesses itens.
+O Brechó Estudantil é uma aplicação web para alunos anunciarem, encontrarem, reservarem e concluírem negociações de itens relacionados à vida escolar. Ela concentra ofertas que hoje circulam informalmente e registra o fluxo básico de uma negociação.
 
-O sistema substitui negociações informais, feitas apenas de boca a boca, por um fluxo simples de anúncio, busca, reserva e confirmação. O pagamento, o contato final e a entrega continuam acontecendo pessoalmente entre os alunos.
+O sistema termina na confirmação do anunciante. Contato, pagamento, troca e entrega acontecem presencialmente, fora da aplicação.
 
+Fluxo prioritário:
 
+1. um aluno publica um anúncio;
+2. outro aluno encontra o item no catálogo, com busca ou filtros;
+3. o interessado consulta os detalhes e reserva o item;
+4. o anunciante confirma a negociação;
+5. ambos consultam o registro no histórico.
 
-## 2. Contexto e problema
+## 2. Atores e permissões
 
-Hoje, quem possui um item disponível nem sempre encontra quem precisa dele. Da mesma forma, o aluno interessado não possui um local único para consultar ofertas, comparar o estado dos itens ou reservar algo.
+Há um único tipo de conta: Aluno. Uma mesma conta pode anunciar itens e também reservar itens publicados por outros alunos. Não existem perfis exclusivos de anunciante e interessado.
 
-O sistema deve oferecer:
+| Ação | Aluno autenticado |
+| --- | --- |
+| Consultar catálogo e detalhes | Sim |
+| Criar, editar e cancelar anúncio próprio | Sim, conforme status |
+| Reservar anúncio de outro aluno disponível | Sim |
+| Reservar anúncio próprio | Não |
+| Confirmar reserva de anúncio próprio | Sim |
+| Alterar, cancelar ou confirmar anúncio de outro aluno | Não |
+| Consultar anúncios e negociações dos quais participa | Sim |
 
-- um catálogo organizado de itens disponíveis;
-- controle sobre quem pode publicar, alterar e reservar;
-- acompanhamento do ciclo de cada anúncio;
-- histórico das negociações concluídas;
-- indicadores simples sobre os itens cadastrados.
+## 3. Requisitos funcionais
 
+### RF-01 — Autenticação e sessão
 
+O sistema deve autenticar contas de alunos previamente cadastradas por e-mail e senha. Após o login, deve disponibilizar uma sessão autenticada com a identificação do aluno. Não há autocadastro nem recuperação de senha nesta versão.
 
-## 3. Atores e permissões
+**Aceite:** credenciais válidas iniciam sessão; credenciais inválidas retornam erro compreensível; rota protegida sem sessão é recusada.
 
-O escopo possui exatamente dois perfis de acesso.
+### RF-02 — Catálogo, busca e filtros
 
-| Ator | Pode fazer | Não pode fazer |
-| --- | --- | --- |
-| Aluno anunciante | Entrar no sistema, publicar anúncios, visualizar e gerenciar os próprios anúncios, confirmar negociações e consultar seu histórico | Alterar ou remover anúncios de outro aluno e reservar itens |
-| Aluno interessado | Entrar no sistema, listar e buscar itens, aplicar filtros, consultar detalhes, reservar itens de outros alunos e consultar seu histórico | Publicar, editar, remover ou confirmar anúncios |
+O sistema deve listar anúncios com status DISPONIVEL e permitir busca textual por item ou descrição, filtros por categoria e estado de conservação e paginação.
 
-Para esta primeira versão, cada conta possui um único perfil. A possibilidade de o mesmo aluno alternar entre os dois perfis deve ser decidida antes da implementação, pois não está definida no briefing.
-(Provavelmente o mesmo, anunciar em seu prefil ou apenas se interesar no dos outros.)
+**Aceite:** um anúncio disponível compatível aparece; anúncios RESERVADO, CONCLUIDO e CANCELADO não aparecem no catálogo público; filtros podem ser combinados.
 
+### RF-03 — Detalhes do anúncio
 
-## 4. Requisitos funcionais
+O sistema deve mostrar item, descrição, categoria, estado de conservação, preço exibido, status, nome do anunciante e datas relevantes do anúncio.
 
-### RF-01 - Autenticação e perfil
+**Aceite:** preço zero é exibido como Troca; a ação de reservar só é apresentada quando o anúncio está disponível e pertence a outro aluno.
 
-O sistema deve permitir login simples de contas previamente cadastradas e identificar se a conta pertence ao perfil `ANUNCIANTE` ou `INTERESSADO`.
+### RF-04 — Cadastro de anúncio
 
-### RF-02 - Catálogo de itens
+O sistema deve permitir que um aluno crie anúncio com item, descrição, categoria, estado de conservação e preço. O preço é opcional: quando omitido, deve ser persistido como zero.
 
-O sistema deve listar os anúncios disponíveis e permitir busca por texto e filtros por categoria e estado de conservação.
+**Aceite:** campos obrigatórios e valores fixos são validados; anúncio novo inicia como DISPONIVEL; criação é recusada acima do limite de anúncios ativos.
 
-### RF-03 - Detalhes do anúncio
+### RF-05 — Edição e cancelamento de anúncio
 
-O sistema deve apresentar item, descrição, categoria, estado de conservação, preço ou indicação de troca, status e identificação do anunciante.
+O sistema deve permitir que o autor edite um anúncio DISPONIVEL. O autor também pode cancelá-lo logicamente enquanto não estiver CONCLUIDO. Cancelamento não pode apagar dados históricos.
 
-### RF-04 - Cadastro de anúncio
+**Aceite:** outro aluno recebe acesso negado; anúncio CONCLUIDO não é editável nem cancelável; anúncio CANCELADO não volta ao catálogo.
 
-O sistema deve permitir que o aluno anunciante cadastre um anúncio com item, descrição, categoria, estado de conservação e preço opcional.
+### RF-06 — Reserva de item
 
-### RF-05 - Gerenciamento de anúncio
+O sistema deve permitir que um aluno reserve anúncio DISPONIVEL de outro aluno. A reserva deve registrar interessado, instante da reserva e expiração em três dias.
 
-O sistema deve permitir que o autor visualize, edite e remova o próprio anúncio, respeitando o status atual e as regras de imutabilidade.
+**Aceite:** uma reserva válida altera o anúncio para RESERVADO; o autor não consegue reservar o próprio item; tentativas concorrentes resultam em apenas uma reserva ativa.
 
-### RF-06 - Reserva de item
+### RF-07 — Confirmação da negociação
 
-O sistema deve permitir que o aluno interessado reserve um anúncio disponível de outro aluno.
+O autor de um anúncio RESERVADO deve poder confirmar sua negociação ativa. A confirmação encerra a reserva e conclui o anúncio.
 
-### RF-07 - Confirmação da negociação
+**Aceite:** somente o autor do anúncio confirma; a operação deixa anúncio e reserva consistentes como concluídos; não há retorno de CONCLUIDO para outro estado.
 
-O sistema deve permitir que o autor do anúncio confirme a negociação de um item reservado, concluindo o anúncio.
+### RF-08 — Expiração de reserva
 
-### RF-08 - Expiração da reserva
+O sistema deve liberar reserva não confirmada após três dias e restaurar o anúncio para DISPONIVEL.
 
-O sistema deve expirar automaticamente uma reserva que não seja confirmada em até 3 dias e tornar o anúncio disponível novamente.
+**Aceite:** reserva expirada fica registrada como expirada/inativa; o anúncio volta ao catálogo; ela não pode ser confirmada depois.
 
-### RF-09 - Perfil e histórico
+### RF-09 — Minha atividade e histórico
 
-O sistema deve exibir, conforme o perfil autenticado, os anúncios ativos do aluno e o histórico de negociações concluídas em que ele participou.
+O sistema deve permitir ao aluno consultar seus anúncios, suas reservas e as negociações concluídas das quais participou. O histórico deve informar qual papel o aluno teve na negociação.
 
-### RF-10 - Painel de indicadores
+**Aceite:** dados de outro aluno não são expostos em listas privadas; itens concluídos permanecem disponíveis apenas para leitura no histórico.
 
-O sistema deve apresentar um painel com totais de itens por categoria e por status. O painel deve conter de 2 a 3 indicadores de leitura simples.
+### RF-10 — Indicadores simples
 
-### RF-11 - Listas fixas
+Após as funcionalidades centrais, o sistema deve apresentar de dois a três indicadores simples, com totais de anúncios por status e/ou categoria.
 
-O sistema deve utilizar somente os valores de categoria, estado de conservação e status definidos neste documento. Esses valores não devem possuir tela de cadastro.
+**Aceite:** os totais são calculados a partir dos dados persistidos e não são necessários para concluir o fluxo principal.
 
-### RF-12 - Controle de acesso
+### RF-11 — Listas fixas
 
-O sistema deve bloquear qualquer operação incompatível com o perfil autenticado ou realizada sobre um recurso que não pertence ao aluno.
+Categoria, estado de conservação e status devem aceitar apenas os valores definidos na seção 6. Não deve haver tela ou API administrativa para cadastrar esses valores.
 
+**Aceite:** valor fora da lista é recusado pela API; a interface oferece somente valores permitidos.
 
+### RF-12 — Controle de acesso e autoria
 
-## 5. Requisitos não funcionais
+Toda operação protegida deve validar a sessão e a autorização no servidor. A interface pode ocultar ações inválidas, mas não substitui a validação da API.
 
-### RNF-01 - Usabilidade
+**Aceite:** ações sem autenticação retornam 401; ações autenticadas sem permissão ou autoria retornam 403.
 
-As telas devem usar textos diretos, mensagens de erro compreensíveis e navegação consistente. As principais tarefas devem ser identificáveis sem treinamento prévio.
+## 4. Requisitos não funcionais
 
-### RNF-02 - Desempenho
+### RNF-01 — Usabilidade
 
-Listagens, filtros, reservas e atualizações devem responder em até 2 segundos em condições normais do ambiente de avaliação e com o volume de dados de demonstração.
+As telas devem usar linguagem direta, navegação consistente e estados claros de carregamento, vazio, sucesso e erro.
 
-### RNF-03 - Segurança
+### RNF-02 — Desempenho
 
-Senhas não devem ser armazenadas em texto puro. Rotas protegidas devem exigir autenticação, e as permissões devem ser verificadas no servidor, independentemente do que a interface exibir.
+Em dados de demonstração, operações de listagem, filtro, criação, reserva e atualização devem responder em até dois segundos em condições normais do ambiente escolar.
 
-### RNF-04 - Integridade e concorrência
+### RNF-03 — Segurança
 
-Operações que alteram reserva ou status devem ser atômicas. Duas tentativas simultâneas não podem criar mais de uma reserva ativa para o mesmo anúncio nem ultrapassar o limite de anúncios ativos.
+Senhas devem ser armazenadas somente como hash. Sessões devem ser verificadas no servidor e entradas devem ser validadas antes da persistência.
 
-### RNF-05 - Compatibilidade
+### RNF-04 — Integridade e concorrência
 
-A aplicação deve funcionar nos navegadores atuais de desktop usados no ambiente escolar. Um aplicativo mobile ou um layout responsivo elaborado não faz parte do escopo.
+Criação de reserva, confirmação, expiração e verificação do limite de ativos devem ser atômicas. O banco deve reforçar chaves estrangeiras, valores permitidos e a unicidade de reserva ativa por anúncio.
 
-### RNF-06 - Testabilidade e rastreabilidade
+### RNF-05 — Compatibilidade
 
-As seis regras de negócio devem possuir testes automatizados e ligação identificável entre requisito, decisão de design e tarefa de implementação.
+A aplicação deve funcionar em navegadores desktop atuais usados no ambiente escolar. Aplicativo mobile e responsividade avançada não fazem parte desta entrega.
 
+### RNF-06 — Testabilidade
 
+Requisitos, regras de negócio, permissões, erros de validação e fluxos principais devem possuir testes automatizados rastreáveis.
 
-## 6. Histórias de usuário
+## 5. Histórias de usuário
 
-### HU-01 - Entrar no sistema
+| ID | História |
+| --- | --- |
+| HU-01 | Como aluno, quero entrar com minha conta para acessar minhas ações e dados. |
+| HU-02 | Como aluno, quero publicar um item para que outros alunos possam encontrá-lo. |
+| HU-03 | Como autor, quero editar ou cancelar meu anúncio permitido para manter suas informações corretas. |
+| HU-04 | Como interessado, quero buscar e filtrar itens disponíveis para localizar o que preciso. |
+| HU-05 | Como interessado, quero reservar item de outro aluno para demonstrar interesse. |
+| HU-06 | Como anunciante, quero confirmar uma reserva para registrar a negociação concluída. |
+| HU-07 | Como aluno, quero consultar meus anúncios, reservas e histórico para acompanhar minhas atividades. |
 
-Como aluno, quero entrar com minha conta para acessar apenas as funções permitidas ao meu perfil.
-
-### HU-02 - Publicar item
-
-Como aluno anunciante, quero cadastrar um item usado para que outros alunos possam encontra-lo.
-
-### HU-03 - Manter anúncio
-
-Como aluno anunciante, quero revisar, editar ou remover meu anúncio para manter as informações corretas.
-
-### HU-04 - Encontrar item
-
-Como aluno interessado, quero pesquisar e filtrar itens para localizar rapidamente o que preciso.
-
-### HU-05 - Reservar item
-
-Como aluno interessado, quero reservar um item disponível para sinalizar meu interesse ao anunciante.
-
-### HU-06 - Confirmar negociação
-
-Como aluno anunciante, quero confirmar uma reserva para registrar que a negociação foi concluída.
-
-### HU-07 - Acompanhar atividades
-
-Como aluno, quero consultar meus itens ativos e meu histórico para acompanhar as negociações das quais participei.
-
-### HU-08 - Consultar o painel
-
-Como aluno, quero ver totais por categoria e status para entender rapidamente a situação do brechó.
-
-
-
-## 7. Regras de negócio
-
-### RN-01 - Ciclo do anúncio
-
-O anúncio segue o ciclo `DISPONIVEL -> RESERVADO -> CONCLUIDO`. O status `CANCELADO` pode encerrar um anúncio antes da conclusão. A restrição terminal de `CONCLUIDO` é definida pela RN-05.
-
-### RN-02 - Propriedade e permissão
-
-Somente o autor pode editar ou remover o próprio anúncio. O aluno interessado pode apenas consultar e reservar anúncios de outros alunos.
-
-### RN-03 - Reserva única e prazo
-
-Um item aceita somente uma reserva ativa por vez. Se o anunciante não confirmar a negociação em até 3 dias, a reserva expira e o anúncio volta ao status `DISPONIVEL`.
-
-### RN-04 - Limite de anúncios ativos
-
-Cada aluno anunciante pode manter no máximo 5 anúncios ativos. Para esse limite, são considerados ativos os anúncios com status `DISPONIVEL` ou `RESERVADO`.
-
-### RN-05 - Imutabilidade da conclusão
-
-Um anúncio `CONCLUIDO` deve ficar somente para leitura, entrar no histórico e nunca retornar a outro status.
-
-### RN-06 - Preço zero
-
-Preço igual a zero representa doação ou troca. Na interface, o valor deve ser exibido como `Troca`, e não como `R$ 0,00`.
-
-
-
-## 8. Listas fixas
-
-Estes valores fazem parte do código e do banco de dados. Eles não devem gerar telas administrativas.
+## 6. Listas fixas
 
 | Lista | Valores permitidos |
 | --- | --- |
-| Categoria | `UNIFORME`, `MATERIAL_ESCOLAR`, `LIVRO`, `ELETRONICO`, `OUTRO` |
-| Estado de conservação | `NOVO`, `BOM`, `USADO` |
-| Status do anúncio | `DISPONIVEL`, `RESERVADO`, `CONCLUIDO`, `CANCELADO` |
+| Categoria | UNIFORME, MATERIAL_ESCOLAR, LIVRO, ELETRONICO, OUTRO |
+| Estado de conservação | NOVO, BOM, USADO |
+| Status do anúncio | DISPONIVEL, RESERVADO, CONCLUIDO, CANCELADO |
+| Status da reserva | ATIVA, CONFIRMADA, EXPIRADA, CANCELADA |
 
+## 7. Regras de negócio
 
+### RN-01 — Ciclo do anúncio
 
-## 9. Restrições do escopo
+O ciclo normal é DISPONIVEL → RESERVADO → CONCLUIDO. Um anúncio DISPONIVEL ou RESERVADO pode ser cancelado pelo autor e passa a CANCELADO. CONCLUIDO e CANCELADO são finais para esta versão.
 
-- A solução deve possuir somente os dois perfis definidos neste documento.
-- As três entidades centrais devem ser `Aluno`, `Anuncio` e `Reserva`.
-- `Anuncio` deve possuir o CRUD completo do projeto.
-- O catálogo deve oferecer busca e/ou filtro; neste projeto serão usados ambos.
-- O painel deve apresentar de 2 a 3 indicadores.
-- As seis regras de negócio devem ser implementadas e validadas.
-- A negociação, o pagamento e a entrega acontecem fora do sistema.
-- O item será representado apenas por informações textuais.
+### RN-02 — Autoria e impedimento de autorreserva
 
+Somente o autor edita, cancela ou confirma anúncio próprio. Um aluno não pode reservar anúncio cuja autoria é sua.
 
+### RN-03 — Reserva única e expiração
 
-## 10. Fora do escopo
+Cada anúncio tem no máximo uma reserva ATIVA. Ela expira exatamente três dias após sua criação quando não confirmada; então fica EXPIRADA e o anúncio volta a DISPONIVEL.
 
-- recuperação de senha, confirmação por e-mail e login social;
-- mais de dois perfis de acesso;
+### RN-04 — Limite de anúncios ativos
+
+Um aluno pode possuir no máximo cinco anúncios ativos. São ativos somente os anúncios DISPONIVEL ou RESERVADO.
+
+### RN-05 — Imutabilidade da conclusão
+
+Anúncio CONCLUIDO e sua reserva CONFIRMADA formam registro histórico somente para leitura. Eles não podem ser editados, cancelados ou reabertos.
+
+### RN-06 — Preço zero
+
+Preço é número não negativo. Valor ausente no cadastro é convertido para zero. No banco e na API o valor é 0; em toda interface ele é mostrado como Troca, nunca R$ 0,00.
+
+### RN-07 — Cancelamento preserva histórico
+
+Cancelar altera o status do anúncio para CANCELADO sem exclusão física. Se houver reserva ATIVA, ela deve mudar para CANCELADA no mesmo processo e ficar registrada no histórico.
+
+## 8. Restrições e fora do escopo
+
+O MVP não inclui:
+
+- imagens, anexos ou upload de arquivos;
+- chat, mensagens ou contato mediado entre alunos;
+- pagamentos online, carrinho, frete ou cálculo de entrega;
+- favoritos;
+- avaliações, notas, estrelas ou reputação de vendedor;
+- recusa manual de reserva;
 - notificações por e-mail, WhatsApp ou push;
-- upload de imagens, anexos ou outros arquivos;
-- pagamento on-line, carrinho, cobranca, integração bancaria ou calculo de frete;
-- chat ou mensagens entre alunos;
-- aplicativo mobile, PWA ou layout responsivo elaborado;
-- exportação para PDF ou Excel e impressão formatada;
-- nota, estrela ou reputação do vendedor;
-- log de auditoria completo, adequacao completa a LGPD, backup ou deploy em produção;
-- integração com sistemas externos da escola;
-- telas administrativas para alterar as listas fixas.
+- aplicativos mobile, PWA ou responsividade avançada;
+- telas administrativas para listas fixas;
+- integrações externas, exportação, auditoria completa, backup, produção ou adequação completa à LGPD.
 
+## 9. Critérios gerais de aceitação
 
-
-## 11. Critérios gerais de aceite
-
-O produto será considerado aderente ao briefing quando:
-
-1. os dois perfis conseguirem entrar e forem limitados pelas respectivas permissões;
-2. o CRUD de anúncios funcionar para o autor;
-3. o catálogo aplicar busca e filtros sobre anúncios disponíveis;
-4. uma reserva puder ser criada e confirmada sem duplicidade;
-5. reservas vencidas retornarem o item para `DISPONIVEL`;
-6. o limite de 5 anúncios ativos for respeitado;
-7. anúncios concluídos permanecerem imutáveis;
-8. preço zero aparecer como `Troca`;
-9. perfil, histórico e painel apresentarem dados coerentes;
-10. nenhum item declarado fora do escopo for necessário para concluir o fluxo principal.
+1. aluno autenticado consegue criar anúncio permitido;
+2. outro aluno consegue localizar, detalhar e reservar esse anúncio;
+3. o autor consegue confirmar a reserva e ambos visualizam o registro concluído;
+4. reserva vencida libera o anúncio corretamente;
+5. autoria, autorreserva, limite de cinco ativos e imutabilidade de concluídos são bloqueados no servidor;
+6. preço zero aparece como Troca em todas as respostas de apresentação;
+7. nenhum recurso fora do escopo é necessário para completar o fluxo principal.

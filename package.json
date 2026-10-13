@@ -2,13 +2,31 @@
   "name": "brecho",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "backend/src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node --env-file-if-exists=.env --watch backend/src/server.js",
+    "start": "node --env-file-if-exists=.env backend/src/server.js",
+    "test": "node --test backend/tests/health.test.js backend/tests/error-handler.test.js backend/tests/domain.test.js",
+    "frontend:dev": "vite --host 127.0.0.1",
+    "frontend:build": "vite build",
+    "db:migrate": "node --env-file-if-exists=.env ./node_modules/sequelize-cli/lib/sequelize db:migrate --config backend/src/config/database.js --migrations-path backend/migrations",
+    "db:seed": "node --env-file-if-exists=.env ./node_modules/sequelize-cli/lib/sequelize db:seed:all --config backend/src/config/database.js --seeders-path backend/seeders"
   },
   "keywords": [],
   "type": "commonjs",
   "dependencies": {
-    "express": "^5.2.1"
+    "bcryptjs": "^3.0.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1",
+    "pg-hstore": "^2.3.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "sequelize": "^6.37.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "sequelize-cli": "^6.6.5",
+    "vite": "^8.3.4"
   }
 }

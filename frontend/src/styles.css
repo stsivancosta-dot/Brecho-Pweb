@@ -1,0 +1,284 @@
+
+:root {
+    font-family: Arial, sans-serif;
+    color: #202a31;
+    background: #f5f7f8;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+
+/* ========================================
+   2. BOTÕES
+======================================== */
+
+button {
+    cursor: pointer;
+    border: 0;
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    background: #1e6e68;
+    color: white;
+}
+
+button.danger {
+    background: #9d3434;
+}
+
+button.active {
+    background: #0f4642;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+
+/* ========================================
+   3. TELA DE LOGIN
+======================================== */
+
+.login {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+}
+
+.login .card {
+    width: min(420px, 100%);
+}
+
+
+/* ========================================
+   4. ESTRUTURA PRINCIPAL DA APLICAÇÃO
+======================================== */
+
+.app {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 250px 1fr;
+}
+
+
+/* Barra lateral */
+
+.app aside {
+    background: #dbe5e3;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.app aside p {
+    margin: 0 0 1rem;
+}
+
+.logout {
+    margin-top: auto;
+    background: #4b5563;
+}
+
+
+/* Área de conteúdo */
+
+.app main {
+    padding: 0 2rem 2rem;
+}
+
+
+/* Cabeçalho */
+
+.app header {
+    text-align: right;
+    padding: 1.2rem 0;
+    color: #1e6e68;
+    font-weight: bold;
+}
+
+
+/* ========================================
+   5. CARDS E GRADE DE CONTEÚDO
+======================================== */
+
+.card {
+    background: white;
+    border: 1px solid #d9e0e2;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 1px 2px #00000010;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+
+/* Cards de anúncios */
+
+.announcement h3 {
+    margin: 0.5rem 0;
+}
+
+
+/* Etiquetas */
+
+.badge {
+    font-size: 0.75rem;
+    background: #dbe5e3;
+    padding: 0.25rem 0.45rem;
+    border-radius: 999px;
+}
+
+
+/* Ações dos cards */
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+
+/* ========================================
+   6. FILTROS E FORMULÁRIOS
+======================================== */
+
+.filters,
+.form {
+    display: grid;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+
+/* Filtros */
+
+.filters {
+    grid-template-columns: minmax(180px, 2fr) 1fr 1fr auto;
+}
+
+
+/* Formulários */
+
+.form {
+    max-width: 680px;
+}
+
+.form label,
+.login label {
+    display: grid;
+    gap: 0.35rem;
+}
+
+
+/* Campos de entrada */
+
+.form input,
+.form select,
+.form textarea,
+.login input,
+.filters input,
+.filters select {
+    padding: 0.6rem;
+    border: 1px solid #b9c4c8;
+    border-radius: 6px;
+}
+
+
+/* Área de texto */
+
+.form textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+
+/* ========================================
+   7. MENSAGENS DE FEEDBACK
+======================================== */
+
+.message {
+    padding: 0.7rem;
+    border-radius: 6px;
+    background: #fce3e3;
+    color: #811d1d;
+}
+
+.message.success {
+    background: #dff4e8;
+    color: #155b35;
+}
+
+
+/* ========================================
+   8. PÁGINAS DE DETALHES E INDICADORES
+======================================== */
+
+.detail {
+    max-width: 720px;
+}
+
+.indicators {
+    max-width: 700px;
+}
+
+
+/* ========================================
+   9. RESPONSIVIDADE — DISPOSITIVOS MÓVEIS
+======================================== */
+
+@media (max-width: 760px) {
+
+    /* Estrutura principal */
+
+    .app {
+        grid-template-columns: 1fr;
+    }
+
+    /* Barra lateral */
+
+    .app aside {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .app aside h1,
+    .app aside p {
+        width: 100%;
+    }
+
+    .logout {
+        margin-top: 0;
+    }
+
+    /* Área de conteúdo */
+
+    .app main {
+        padding: 0 1rem 1rem;
+    }
+
+    /* Filtros em coluna */
+
+    .filters {
+        grid-template-columns: 1fr;
+    }
+}

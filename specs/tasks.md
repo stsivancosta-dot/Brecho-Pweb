@@ -1,142 +1,150 @@
-# Tasks - Brechó Estudantil
+# Tasks — Brechó Estudantil
 
-## 1. Organização
+## 1. Convenções
 
-As tarefas abaixo transformam [requirements.md](./requirements.md) e [design.md](./design.md) em trabalho executável ao longo de 8 sessões. Todas começam com o status `Não iniciado`.
+Estas tarefas implementam requirements.md e design.md. Todas começam com status **Não iniciado**. A prioridade é o fluxo publicar → encontrar → reservar → confirmar → histórico; indicadores e acabamentos vêm depois.
 
-Cada tarefa informa os requisitos e regras que ajuda a entregar. A sessão só deve ser encerrada quando seus critérios de conclusão forem verificados.
-
-## Sessão 1 - Base do projeto
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-01 | Revisar as três specs com a equipe e registrar dúvidas de escopo | Todos | Não iniciado |
-| T-02 | Organizar frontend React e backend Node.js/Express para execução local | RNF-05, RNF-06 | Não iniciado |
-| T-03 | Configurar variáveis locais e conexão inicial com PostgreSQL | RNF-03 | Não iniciado |
-| T-04 | Configurar comandos de desenvolvimento, testes e verificação de qualidade | RNF-06 | Não iniciado |
-| T-05 | Criar tratamento padrão de erros e estrutura de respostas JSON | RNF-01, RNF-06 | Não iniciado |
-
-**Conclusão da sessão:** frontend e API iniciam localmente, a API acessa o banco e os comandos de teste executam.
-
-## Sessão 2 - Banco de dados e autenticação
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-06 | Criar enums/checks das listas fixas | RF-11 | Não iniciado |
-| T-07 | Criar migrações das tabelas `alunos`, `anuncios` e `reservas`, FKs e índices | RF-04, RF-06, RNF-04 | Não iniciado |
-| T-08 | Criar contas de demonstração dos dois perfis com senhas protegidas | RF-01, RNF-03 | Não iniciado |
-| T-09 | Implementar `POST /api/auth/login` e middleware de autenticação | RF-01, RF-12, RNF-03 | Não iniciado |
-| T-10 | Implementar middleware de perfil e testes de acesso dos dois atores | RF-12, RN-02, RNF-03 | Não iniciado |
-
-**Conclusão da sessão:** os dois perfis entram no sistema, recebem sessão válida e são bloqueados nas rotas incompatíveis.
-
-## Sessão 3 - CRUD de anúncios
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-11 | Implementar `POST /api/anuncios` com validações e status inicial | RF-04, RF-11, RN-06 | Não iniciado |
-| T-12 | Implementar verificação transacional do limite de 5 anúncios ativos | RN-04, RNF-04 | Não iniciado |
-| T-13 | Implementar `GET /api/anuncios/:id` | RF-03 | Não iniciado |
-| T-14 | Implementar `PATCH /api/anuncios/:id` com verificação de autoria e imutabilidade | RF-05, RF-12, RN-02, RN-05 | Não iniciado |
-| T-15 | Implementar `DELETE /api/anuncios/:id` como cancelamento lógico | RF-05, RN-01, RN-02, RN-05 | Não iniciado |
-| T-16 | Testar criação, leitura, edição, cancelamento, propriedade e limite de ativos | RF-04, RF-05, RN-02, RN-04, RN-05, RN-06 | Não iniciado |
-
-**Conclusão da sessão:** o anunciante executa o CRUD completo apenas nos próprios anúncios e todas as restrições desse fluxo possuem testes.
-
-## Sessão 4 - Catálogo, busca e interface de anúncios
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-17 | Implementar `GET /api/anuncios` com busca, filtros e listagem de disponíveis | RF-02, RF-11 | Não iniciado |
-| T-18 | Criar tela de login e proteção das rotas React por perfil | RF-01, RF-12, RNF-01 | Não iniciado |
-| T-19 | Criar catálogo com busca e filtros por categoria e conservação | RF-02, RF-11, HU-04 | Não iniciado |
-| T-20 | Criar tela de detalhe com identificação do anunciante e status | RF-03, RNF-01 | Não iniciado |
-| T-21 | Criar formulário reutilizável para cadastrar e editar anúncios | RF-04, RF-05, RF-11, HU-02, HU-03 | Não iniciado |
-| T-22 | Integrar cancelamento e mensagens de sucesso ou erro na interface | RF-05, RN-01, RNF-01 | Não iniciado |
-
-**Conclusão da sessão:** o usuário navega do login ao catálogo e o anunciante completa o CRUD pela interface.
-
-## Sessão 5 - Reserva, confirmação e expiração
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-23 | Implementar `POST /api/anuncios/:id/reservas` com bloqueio transacional | RF-06, RN-02, RN-03, RNF-04 | Não iniciado |
-| T-24 | Criar índice único parcial e teste de duas reservas simultâneas | RN-03, RNF-04 | Não iniciado |
-| T-25 | Implementar `PATCH /api/reservas/:id/confirmacao` para o autor | RF-07, RN-01, RN-02, RN-05 | Não iniciado |
-| T-26 | Implementar serviço de expiração e retorno do item a `DISPONIVEL` | RF-08, RN-03 | Não iniciado |
-| T-27 | Criar testes com relógio controlado para o prazo de 3 dias | RF-08, RN-03, RNF-06 | Não iniciado |
-| T-28 | Integrar botões de reserva e confirmação nas telas permitidas | RF-06, RF-07, HU-05, HU-06 | Não iniciado |
-
-**Conclusão da sessão:** um único interessado reserva o item, o autor confirma a negociação e uma reserva vencida libera o anúncio.
-
-## Sessão 6 - Perfil e histórico
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-29 | Implementar `GET /api/me` | RF-01, RF-09 | Não iniciado |
-| T-30 | Implementar `GET /api/me/anuncios` para anúncios do autor | RF-05, RF-09, RN-02 | Não iniciado |
-| T-31 | Implementar `GET /api/me/negociacoes` para o histórico dos participantes | RF-09, RN-05 | Não iniciado |
-| T-32 | Criar tela de perfil com seções adequadas a cada ator | RF-09, HU-07, RNF-01 | Não iniciado |
-| T-33 | Testar que anúncio concluído é somente leitura e não muda de status | RN-05, RNF-06 | Não iniciado |
-
-**Conclusão da sessão:** cada aluno consulta seus dados e atividades, e negociações concluídas permanecem no histórico sem edição.
-
-## Sessão 7 - Painel e acabamento funcional
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-34 | Implementar `GET /api/dashboard` com totais por categoria e status | RF-10 | Não iniciado |
-| T-35 | Criar painel com 2 a 3 indicadores e agrupamentos solicitados | RF-10, HU-08, RNF-01 | Não iniciado |
-| T-36 | Aplicar a exibição `Troca` em todos os locais com preço zero | RF-03, RN-06 | Não iniciado |
-| T-37 | Revisar mensagens, estados vazios, carregamento e erros das telas | RNF-01 | Não iniciado |
-| T-38 | Verificar funcionamento nos navegadores desktop escolhidos | RNF-05 | Não iniciado |
-| T-39 | Confirmar que listas fixas não possuem cadastro administrativo | RF-11 | Não iniciado |
-
-**Conclusão da sessão:** painel, preço de troca e estados de interface apresentam dados consistentes e respeitam o escopo.
-
-## Sessão 8 - Integração, qualidade e entrega
-
-| ID | Tarefa | Relacionados | Status |
-| --- | --- | --- | --- |
-| T-40 | Criar teste ponta a ponta do fluxo `DISPONIVEL -> RESERVADO -> CONCLUIDO` | RN-01, RF-04, RF-06, RF-07 | Não iniciado |
-| T-41 | Criar teste ponta a ponta de expiração e nova reserva | RF-08, RN-03 | Não iniciado |
-| T-42 | Executar testes de permissão, concorrência e segurança | RF-12, RN-02, RNF-03, RNF-04 | Não iniciado |
-| T-43 | Executar testes de limite, imutabilidade e preço zero | RN-04, RN-05, RN-06 | Não iniciado |
-| T-44 | Auditar a rastreabilidade entre Requirements, Design e Tasks | RNF-06 | Não iniciado |
-| T-45 | Revisar README, instruções locais e contas de demonstração | RF-01, RNF-06 | Não iniciado |
-| T-46 | Fazer demonstração final dos critérios gerais de aceite | Todos | Não iniciado |
-
-**Conclusão da sessão:** testes aprovados, seis regras demonstráveis, documentação coerente e fluxo principal pronto para avaliação.
-
-## 2. Matriz de cobertura
-
-| Item | Tarefas principais |
+| Campo | Significado |
 | --- | --- |
-| RF-01 | T-08, T-09, T-18, T-29 |
-| RF-02 | T-17, T-19 |
-| RF-03 | T-13, T-20, T-36 |
-| RF-04 | T-07, T-11, T-16, T-21 |
-| RF-05 | T-14, T-15, T-16, T-21, T-22, T-30 |
-| RF-06 | T-23, T-28, T-40 |
-| RF-07 | T-25, T-28, T-40 |
-| RF-08 | T-26, T-27, T-41 |
-| RF-09 | T-29, T-30, T-31, T-32 |
-| RF-10 | T-34, T-35 |
-| RF-11 | T-06, T-11, T-17, T-19, T-21, T-39 |
-| RF-12 | T-09, T-10, T-14, T-18, T-42 |
-| RN-01 | T-15, T-22, T-25, T-40 |
-| RN-02 | T-10, T-14, T-16, T-23, T-25, T-30, T-42 |
-| RN-03 | T-23, T-24, T-26, T-27, T-41 |
-| RN-04 | T-12, T-16, T-43 |
-| RN-05 | T-14, T-15, T-16, T-25, T-31, T-33, T-43 |
-| RN-06 | T-11, T-16, T-36, T-43 |
-| RNF-01 a RNF-06 | T-02 a T-05, T-07 a T-10, T-18, T-24, T-27, T-33, T-37, T-38, T-42, T-44 e T-45 |
+| Relacionados | requisitos e regras atendidos |
+| Dependências | tarefas que precisam estar concluídas |
+| Módulos | destino provável; ajustar apenas se a estrutura real diferir |
+| Validação | evidência objetiva de conclusão |
 
-## 3. Regra de atualização
+Comandos previstos após a configuração: npm test para testes automatizados e npm run dev para execução local. Os scripts exatos devem ser definidos em T-04.
 
-Quando um requisito ou uma regra mudar, a equipe deve atualizar, nesta ordem:
+## Etapa 1 — Base mínima de backend
 
-1. `requirements.md`, para registrar o novo comportamento;
-2. `design.md`, para ajustar dados, API, telas e validações;
-3. `tasks.md`, para incluir ou alterar a execução e os testes;
-4. o código, somente depois que a rastreabilidade estiver clara.
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-01 | Revisar estas specs e registrar somente ambiguidades reais antes de codificar. | Todos | — | specs/ | Equipe confirma a conta única por aluno e preço ausente igual a zero. | Concluído |
+| T-02 | Criar estrutura do backend Express com app, roteador e endpoint de saúde. | RNF-05, RNF-06 | T-01 | backend/src/app.js, routes/ | GET /health responde 200 em teste de integração. | Concluído |
+| T-03 | Definir variáveis de ambiente locais e configuração PostgreSQL sem credenciais versionadas; a conexão real será validada na T-06, quando o driver for instalado. | RNF-03 | T-02 | backend/src/config/ | Configuração informa variável obrigatória ausente e aceita valores válidos sem abrir conexão. | Concluído |
+| T-04 | Configurar scripts de desenvolvimento, teste e banco de testes. | RNF-06 | T-02, T-03 | package.json, backend/tests/ | npm test executa a suíte inicial; conexão de teste fica para T-06. | Concluído |
+| T-05 | Criar resposta JSON de erro e middleware global de erros. | RNF-01, RNF-06 | T-02, T-04 | middlewares/, tests/ | Rota inexistente retorna formato erro.codigo e erro.mensagem. | Concluído |
+
+**Conclusão da etapa:** API inicializa, possui configuração pronta para o banco e uma primeira rota testável. A conexão PostgreSQL será validada na T-06, junto do driver e ORM.
+
+## Etapa 2 — Banco, ORM e primeira rota protegida
+
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-06 | Instalar e configurar Sequelize, driver PostgreSQL e migrations. | RNF-04 | T-03, T-04 | backend/src/models/, migrations/ | Migration de teste sobe e desfaz no banco de testes. | Não iniciado |
+| T-07 | Criar migration e modelo Aluno com e-mail único e senha_hash. | RF-01, RNF-03 | T-06 | migrations/, models/Aluno | Duplicidade de e-mail é recusada pelo banco. | Não iniciado |
+| T-08 | Criar contas de demonstração com senha em hash, sem endpoint de cadastro. | RF-01, RNF-03 | T-07 | seeders/ | Seed insere contas e nenhuma senha em texto puro. | Não iniciado |
+| T-09 | Implementar POST /api/auth/login e GET /api/me. | RF-01 | T-05, T-08 | routes/auth, controllers/, services/ | Testar login válido, inválido, token válido e ausência de token. | Não iniciado |
+| T-10 | Implementar middleware de autenticação baseado em alunoId e teste 401. | RF-01, RF-12, RNF-03 | T-09 | middlewares/auth | Rota protegida sem token responde 401; não há campo perfil exclusivo. | Não iniciado |
+
+Exemplo de verificação desta etapa:
+
+~~~bash
+npm test -- auth
+~~~
+
+**Conclusão da etapa:** banco possui aluno, sessão é verificável e testes de autenticação estão verdes.
+
+## Etapa 3 — Modelos de anúncio e catálogo
+
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-11 | Criar listas fixas, migration e modelo Anuncio com checks, FKs, timestamps e índices. | RF-11, RNF-04 | T-06, T-07 | models/Anuncio, migrations/ | Valores inválidos e preço negativo são recusados pelo banco ou validador. | Não iniciado |
+| T-12 | Implementar serialização de anúncio e formato de preço Troca para valor zero. | RF-03, RN-06 | T-11 | services/anuncios, utils/ | Teste confirma preco 0 e precoExibicao Troca. | Não iniciado |
+| T-13 | Implementar GET /api/anuncios com busca, filtros, paginação e somente DISPONIVEL. | RF-02, RF-11 | T-10, T-11, T-12 | routes/anuncios, services/ | Testar busca, categoria, conservação, paginação e exclusão dos outros status. | Não iniciado |
+| T-14 | Implementar GET /api/anuncios/:id com dados textuais e anunciante. | RF-03 | T-13 | controllers/anuncios | Testar resposta 200, 404 e exibição Troca. | Não iniciado |
+
+**Conclusão da etapa:** catálogo e detalhes são acessíveis por API autenticada e obedecem às listas fixas.
+
+## Etapa 4 — CRUD próprio e regra de anúncios ativos
+
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-15 | Implementar POST /api/anuncios com normalização de preço ausente para zero. | RF-04, RN-06 | T-11, T-12 | services/anuncios | Testar criação válida, campos ausentes, lista inválida e preço omitido. | Não iniciado |
+| T-16 | Implementar contagem transacional de anúncios DISPONIVEL ou RESERVADO e limite cinco. | RN-04, RNF-04 | T-15 | services/anuncios, migrations/ | Sexta criação retorna 409; duas criações concorrentes não ultrapassam cinco. | Não iniciado |
+| T-17 | Implementar PATCH /api/anuncios/:id com autoria e edição apenas em DISPONIVEL. | RF-05, RF-12, RN-02, RN-05 | T-15 | services/anuncios | Autor edita disponível; terceiro recebe 403; reservado, concluído e cancelado são recusados. | Não iniciado |
+| T-18 | Implementar DELETE /api/anuncios/:id como cancelamento lógico e preservação de registro. | RF-05, RN-01, RN-07 | T-17 | services/anuncios | Status vira CANCELADO; registro permanece no banco; item sai do catálogo. | Não iniciado |
+| T-19 | Implementar GET /api/me/anuncios com filtro por status e autoria da sessão. | RF-09, RF-12 | T-15 | routes/me, services/ | Lista contém apenas anúncios do aluno autenticado. | Não iniciado |
+| T-20 | Consolidar testes de CRUD, autoria, limite, cancelamento e imutabilidade. | RF-04, RF-05, RF-12, RN-02, RN-04, RN-05, RN-06, RN-07 | T-15 a T-19 | backend/tests/anuncios | Suíte verde cobre os cenários da etapa e não cria dados residuais. | Não iniciado |
+
+**Conclusão da etapa:** o aluno publica e mantém apenas anúncios próprios, sem violar limite ou histórico.
+
+## Etapa 5 — Reserva, confirmação e expiração
+
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-21 | Criar migration e modelo Reserva com status, datas, FKs, índices e unicidade parcial de reserva ATIVA. | RF-06, RN-03, RNF-04 | T-11 | models/Reserva, migrations/ | Banco impede duas reservas ATIVA para o mesmo anúncio. | Não iniciado |
+| T-22 | Implementar POST /api/anuncios/:id/reservas em transação com bloqueio do anúncio. | RF-06, RN-02, RN-03 | T-21, T-13 | services/reservas | Reserva válida retorna 201, registra expira_em e altera anúncio para RESERVADO. | Não iniciado |
+| T-23 | Testar autorreserva, anúncio indisponível e duas reservas simultâneas. | RF-06, RF-12, RN-02, RN-03, RNF-04 | T-22 | backend/tests/reservas | Autor recebe 403; conflito recebe 409; existe uma única ATIVA. | Não iniciado |
+| T-24 | Implementar PATCH /api/reservas/:id/confirmacao em transação para o autor do anúncio. | RF-07, RN-01, RN-02, RN-05 | T-22 | services/reservas | Reserva fica CONFIRMADA e anúncio CONCLUIDO no mesmo commit. | Não iniciado |
+| T-25 | Implementar serviço idempotente de expiração e seu agendamento. | RF-08, RN-03 | T-22 | jobs/, services/reservas | Reserva vencida fica EXPIRADA e anúncio volta para DISPONIVEL. | Não iniciado |
+| T-26 | Executar expiração antes de reserva, confirmação, catálogo dependente de status e indicadores. | RF-08, RN-03 | T-25 | services/, routes/ | Uma reserva vencida é liberada mesmo antes da próxima execução agendada. | Não iniciado |
+| T-27 | Criar testes com relógio controlado para confirmação, expiração e imutabilidade. | RF-07, RF-08, RN-01, RN-03, RN-05, RNF-06 | T-24 a T-26 | backend/tests/reservas | Confirmação após prazo falha; concluído não pode ser reaberto. | Não iniciado |
+| T-28 | Implementar GET /api/me/reservas, GET /api/me/reservas-recebidas e GET /api/me/negociacoes com papel do aluno. | RF-07, RF-09, RN-05 | T-24, T-27 | routes/me, services/ | Interessado vê suas reservas, autor vê reservas recebidas e participantes veem histórico concluído. | Não iniciado |
+
+Exemplo de chamada após T-22:
+
+~~~bash
+curl -X POST http://localhost:3000/api/anuncios/ID/reservas -H "Authorization: Bearer TOKEN"
+~~~
+
+**Conclusão da etapa:** o fluxo central de backend está demonstrável, seguro contra concorrência e coberto por testes.
+
+## Etapa 6 — Revisão do backend e contrato
+
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-29 | Criar testes de contrato para todas as rotas, erros 400, 401, 403, 404 e 409. | RF-01 a RF-09, RF-12 | T-09 a T-28 | backend/tests/ | Cada rota documentada possui ao menos sucesso e falha relevante. | Não iniciado |
+| T-30 | Revisar transações, índices e mensagens de erro com dados de teste. | RNF-01, RNF-04 | T-29 | services/, migrations/ | Revisão confirma reserva única, limite e transições consistentes. | Não iniciado |
+| T-31 | Congelar contratos de API usados pelo frontend e atualizar design.md se necessário. | RNF-06 | T-29, T-30 | specs/design.md | Rotas, payloads e códigos verificados correspondem à documentação. | Não iniciado |
+
+**Conclusão da etapa:** backend e testes estão concluídos antes de iniciar interface.
+
+## Etapa 7 — Frontend integrado aos contratos testados
+
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-32 | Criar SPA React, cliente de API, armazenamento de sessão e rotas protegidas. | RF-01, RF-12, RNF-01 | T-31 | frontend/src/api, routes/ | Login persiste sessão; acesso sem sessão retorna à tela de login. | Não iniciado |
+| T-33 | Criar Layout, navegação e componentes de carregamento, vazio e erro. | RNF-01 | T-32 | components/ | Todas as páginas têm feedback visual consistente. | Não iniciado |
+| T-34 | Implementar Login e Menu sem depender de indicadores. | RF-01 | T-32, T-33 | pages/Login, pages/Menu | Credencial inválida é exibida; sucesso permite navegar. | Não iniciado |
+| T-35 | Implementar Brechó com cards textuais, busca, filtros e paginação. | RF-02, RF-11 | T-33, T-34 | pages/Brecho, components/AnuncioCard | Filtros chamam GET /anuncios; lista vazia é clara. | Não iniciado |
+| T-36 | Implementar Detalhes e ação de reserva condicional. | RF-03, RF-06, RN-02, RN-06 | T-35 | pages/Detalhes | Autor não vê reservar; conflito 409 atualiza a mensagem. | Não iniciado |
+| T-37 | Implementar Cadastro, Editar e Minha vitrine. | RF-04, RF-05, RF-09 | T-33, T-34, T-31 | pages/Cadastro, pages/MinhaVitrine | Formulário aplica listas fixas, mostra Troca e ações permitidas. | Não iniciado |
+| T-38 | Implementar Minhas reservas, confirmação para o autor e Histórico somente leitura. | RF-07, RF-08, RF-09, RN-05 | T-36, T-37 | pages/Reservas, pages/Historico | Participante acompanha reserva; autor confirma; concluídos não oferecem edição. | Não iniciado |
+| T-39 | Testar interface dos fluxos principais com chamadas simuladas ou ambiente de teste. | RNF-01, RNF-06 | T-34 a T-38 | frontend/src/**/*.test | Estados de carregamento, erro, vazio e sucesso são cobertos. | Não iniciado |
+
+**Conclusão da etapa:** todas as páginas do fluxo principal usam contratos já testados e não exibem recursos fora do escopo.
+
+## Etapa 8 — Indicadores, integração e entrega
+
+| ID | Descrição | Relacionados | Dependências | Módulos | Validação e conclusão | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| T-40 | Implementar e testar GET /api/indicadores com duas ou três agregações simples. | RF-10 | T-31 | routes/indicadores, tests/ | Totais por status e categoria batem com banco de teste. | Não iniciado |
+| T-41 | Integrar indicadores de forma secundária no Menu. | RF-10, RNF-01 | T-34, T-40 | pages/Menu | Ausência temporária de dados não bloqueia anúncio ou catálogo. | Não iniciado |
+| T-42 | Executar teste ponta a ponta: publicar, buscar, reservar, confirmar e consultar histórico. | RF-01 a RF-09 | T-39, T-41 | tests/e2e ou roteiro manual | Fluxo termina sem dashboard, chat, pagamento ou recurso externo. | Não iniciado |
+| T-43 | Auditar escopo, rastreabilidade, documentação e navegadores desktop definidos. | Todos, RNF-05, RNF-06 | T-42 | specs/, README.md | Nenhuma rota, página ou dependência fora do escopo; docs correspondem ao sistema. | Não iniciado |
+| T-44 | Preparar entrega: migrations reproduzíveis, seeds de demonstração, comandos e evidências de testes. | RNF-06 | T-43 | README.md, package scripts | Ambiente limpo reproduz a execução e a suíte passa. | Não iniciado |
+
+**Conclusão da etapa:** fluxo principal entregue, indicadores secundários funcionais e evidências de qualidade disponíveis.
+
+## 2. Matriz de rastreabilidade
+
+| Item | Implementação | Teste principal |
+| --- | --- | --- |
+| RF-01 | T-07 a T-10, T-32, T-34 | T-09, T-29, T-39 |
+| RF-02 e RF-03 | T-11 a T-14, T-35, T-36 | T-13, T-14, T-29, T-39 |
+| RF-04 e RF-05 | T-15 a T-20, T-37 | T-16, T-20, T-29, T-39 |
+| RF-06 a RF-08 | T-21 a T-27, T-36, T-38 | T-23, T-27, T-29, T-42 |
+| RF-09 | T-19, T-28, T-37, T-38 | T-28, T-29, T-39 |
+| RF-10 | T-40, T-41 | T-40, T-42 |
+| RF-11 e RF-12 | T-11, T-13, T-17, T-23, T-32 | T-20, T-23, T-29 |
+| RN-01 a RN-07 | T-16, T-18, T-21 a T-27 | T-20, T-23, T-27, T-30 |
+| RNF-01 a RNF-06 | T-02 a T-05, T-29 a T-44 | T-29, T-30, T-39, T-43 |
+
+## 3. Lista de auditoria final
+
+- Todos os testes backend passam antes da implementação visual.
+- A conta única pode publicar e reservar itens de outros alunos.
+- Não existe perfil exclusivo, favoritos, avaliações, chat ou recusa manual de reserva.
+- Preço ausente é salvo como zero e exibido como Troca.
+- Uma reserva ativa por anúncio é garantida pelo banco e pela transação.
+- Reservas vencidas liberam anúncio; concluídos são imutáveis.
+- Dashboard é construído somente depois do fluxo principal.
