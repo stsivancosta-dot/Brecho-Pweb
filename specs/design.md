@@ -1,7 +1,6 @@
 # Design — Brechó Estudantil
 
-## 1. Visão técnica
-
+## 1. Visão técnica -------------------------------------------------------
 Esta especificação descreve como atender aos requisitos de requirements.md sem implementar a aplicação nesta etapa.
 
 ~~~text
@@ -13,7 +12,6 @@ React (SPA)  →  API REST Node.js/Express  →  PostgreSQL
 - Frontend: renderiza páginas, mantém a sessão e chama a API. Ele não decide permissões nem transições de status.
 - API: autentica, autoriza, valida entradas, executa regras de negócio e retorna respostas JSON.
 - Banco: persiste dados, aplica integridade referencial e protege operações concorrentes.
-- ORM: Sequelize é a escolha proposta para modelos, migrations, transações e consultas. A dependência só deve ser instalada na tarefa de preparação.
 
 Uma conta de Aluno pode executar ações de anunciante e de interessado. A autorização é baseada em autoria e estado do recurso, não em um campo de perfil exclusivo.
 
@@ -45,7 +43,7 @@ frontend/
 
 Rotas recebem a requisição; controladores convertem HTTP em chamada de serviço; serviços aplicam regras e transações; modelos representam persistência. Validadores não substituem as regras de negócio do serviço.
 
-## 3. Modelo de dados
+## 3. Modelo de dados ----------------------------------------------------
 
 ### 3.1 Relacionamentos
 
@@ -271,7 +269,7 @@ Em uma única transação: bloquear reserva e anúncio; conferir autoria, status
 
 Um serviço idempotente deve localizar reservas ATIVA com expira_em menor ou igual ao instante atual, atualizá-las para EXPIRADA e restaurar seus anúncios RESERVADO para DISPONIVEL. Ele roda por agendamento e também é executado antes de ações que dependam de disponibilidade. Testes usam relógio controlado.
 
-## 7. Frontend
+## 7. Frontend 
 
 ### 7.1 Princípios e componentes comuns
 
@@ -291,7 +289,7 @@ Componentes compartilhados:
 
 Não incluir ícone de favoritos, avaliações, chat ou tela administrativa.
 
-### 7.2 Páginas
+### 7.2 Páginas ----------------------------------------------------
 
 | Página | Objetivo, dados e ações | API e estados |
 | --- | --- | --- |
@@ -302,22 +300,20 @@ Não incluir ícone de favoritos, avaliações, chat ou tela administrativa.
 | Cadastro | formulário de novo anúncio | POST /anuncios. Exibe validação, limite de cinco e sucesso. |
 | Editar anúncio | formulário do anúncio próprio disponível | GET /anuncios/:id e PATCH /anuncios/:id. Acesso negado, imutável e sucesso. |
 | Minha vitrine | listar anúncios próprios por status; editar ou cancelar quando permitido | GET /me/anuncios e DELETE /anuncios/:id. Estado vazio, confirmação de cancelamento e erro. |
-| Minhas reservas | listar reservas feitas pelo aluno e reservas recebidas nos anúncios próprios; confirmar somente reserva recebida ativa | GET /me/reservas, GET /me/reservas-recebidas e PATCH /reservas/:id/confirmacao. Vazio e reserva expirada. |
 | Histórico | listar negociações concluídas com papel do aluno | GET /me/negociacoes. Estado vazio e somente leitura. |
 
 Fluxos:
 
 ~~~text
-Publicar: Login → Cadastro → Minha vitrine
-Reservar: Login → Brechó → Detalhes → Reservar → Minhas reservas
-Concluir: Minha vitrine → reserva ativa → Confirmar → Histórico
+Publicar: Login → Cadastro → Minha vitrine → gerenciamento 
+Reservar: Login → Brechó → Detalhes → Reservar
+Concluir: Minha vitrine → reserva ativa → Confirmar
 ~~~
 
 ## 8. Testabilidade
 
 ### 8.1 Backend primeiro
 
-O backend e seus testes devem ser implementados antes do frontend. Testes de integração usam banco isolado e migrations. Testes unitários cobrem serviços puros e validações; testes de integração cobrem rotas, autenticação, autorização e transações.
 
 | Área | Casos mínimos |
 | --- | --- |

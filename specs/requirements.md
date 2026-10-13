@@ -1,6 +1,6 @@
 # Requirements — Brechó Estudantil
 
-## 1. Objetivo e problema
+## 1. Objetivo e problema  ----------------------------------------------------
 
 O Brechó Estudantil é uma aplicação web para alunos anunciarem, encontrarem, reservarem e concluírem negociações de itens relacionados à vida escolar. Ela concentra ofertas que hoje circulam informalmente e registra o fluxo básico de uma negociação.
 
@@ -14,9 +14,9 @@ Fluxo prioritário:
 4. o anunciante confirma a negociação;
 5. ambos consultam o registro no histórico.
 
-## 2. Atores e permissões
+## 2. Atores e permissões 
 
-Há um único tipo de conta: Aluno. Uma mesma conta pode anunciar itens e também reservar itens publicados por outros alunos. Não existem perfis exclusivos de anunciante e interessado.
+Há um único tipo de conta: Aluno. Uma mesma conta pode anunciar itens e também reservar itens publicados por outros alunos. Não existem perfis exclusivos de anunciante e interessado, apenas suas mutagens.
 
 | Ação | Aluno autenticado |
 | --- | --- |
@@ -28,7 +28,7 @@ Há um único tipo de conta: Aluno. Uma mesma conta pode anunciar itens e també
 | Alterar, cancelar ou confirmar anúncio de outro aluno | Não |
 | Consultar anúncios e negociações dos quais participa | Sim |
 
-## 3. Requisitos funcionais
+## 3. Requisitos
 
 ### RF-01 — Autenticação e sessão
 
@@ -102,45 +102,9 @@ Toda operação protegida deve validar a sessão e a autorização no servidor. 
 
 **Aceite:** ações sem autenticação retornam 401; ações autenticadas sem permissão ou autoria retornam 403.
 
-## 4. Requisitos não funcionais
 
-### RNF-01 — Usabilidade
 
-As telas devem usar linguagem direta, navegação consistente e estados claros de carregamento, vazio, sucesso e erro.
-
-### RNF-02 — Desempenho
-
-Em dados de demonstração, operações de listagem, filtro, criação, reserva e atualização devem responder em até dois segundos em condições normais do ambiente escolar.
-
-### RNF-03 — Segurança
-
-Senhas devem ser armazenadas somente como hash. Sessões devem ser verificadas no servidor e entradas devem ser validadas antes da persistência.
-
-### RNF-04 — Integridade e concorrência
-
-Criação de reserva, confirmação, expiração e verificação do limite de ativos devem ser atômicas. O banco deve reforçar chaves estrangeiras, valores permitidos e a unicidade de reserva ativa por anúncio.
-
-### RNF-05 — Compatibilidade
-
-A aplicação deve funcionar em navegadores desktop atuais usados no ambiente escolar. Aplicativo mobile e responsividade avançada não fazem parte desta entrega.
-
-### RNF-06 — Testabilidade
-
-Requisitos, regras de negócio, permissões, erros de validação e fluxos principais devem possuir testes automatizados rastreáveis.
-
-## 5. Histórias de usuário
-
-| ID | História |
-| --- | --- |
-| HU-01 | Como aluno, quero entrar com minha conta para acessar minhas ações e dados. |
-| HU-02 | Como aluno, quero publicar um item para que outros alunos possam encontrá-lo. |
-| HU-03 | Como autor, quero editar ou cancelar meu anúncio permitido para manter suas informações corretas. |
-| HU-04 | Como interessado, quero buscar e filtrar itens disponíveis para localizar o que preciso. |
-| HU-05 | Como interessado, quero reservar item de outro aluno para demonstrar interesse. |
-| HU-06 | Como anunciante, quero confirmar uma reserva para registrar a negociação concluída. |
-| HU-07 | Como aluno, quero consultar meus anúncios, reservas e histórico para acompanhar minhas atividades. |
-
-## 6. Listas fixas
+## 4. Listas fixas
 
 | Lista | Valores permitidos |
 | --- | --- |
@@ -149,7 +113,7 @@ Requisitos, regras de negócio, permissões, erros de validação e fluxos princ
 | Status do anúncio | DISPONIVEL, RESERVADO, CONCLUIDO, CANCELADO |
 | Status da reserva | ATIVA, CONFIRMADA, EXPIRADA, CANCELADA |
 
-## 7. Regras de negócio
+## 5. Regras de negócio
 
 ### RN-01 — Ciclo do anúncio
 
@@ -179,7 +143,7 @@ Preço é número não negativo. Valor ausente no cadastro é convertido para ze
 
 Cancelar altera o status do anúncio para CANCELADO sem exclusão física. Se houver reserva ATIVA, ela deve mudar para CANCELADA no mesmo processo e ficar registrada no histórico.
 
-## 8. Restrições e fora do escopo
+## 6. Restrições e fora do escopo
 
 O MVP não inclui:
 
@@ -194,7 +158,7 @@ O MVP não inclui:
 - telas administrativas para listas fixas;
 - integrações externas, exportação, auditoria completa, backup, produção ou adequação completa à LGPD.
 
-## 9. Critérios gerais de aceitação
+## 7. Critérios gerais de aceitação
 
 1. aluno autenticado consegue criar anúncio permitido;
 2. outro aluno consegue localizar, detalhar e reservar esse anúncio;
