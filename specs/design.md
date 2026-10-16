@@ -1,6 +1,6 @@
 # Design — Brechó Estudantil
 
-## 1. Visão técnica -------------------------------------------------------
+## 1. Visão técnica 
 Esta especificação descreve como atender aos requisitos de requirements.md sem implementar a aplicação nesta etapa.
 
 ~~~text
@@ -43,7 +43,7 @@ frontend/
 
 Rotas recebem a requisição; controladores convertem HTTP em chamada de serviço; serviços aplicam regras e transações; modelos representam persistência. Validadores não substituem as regras de negócio do serviço.
 
-## 3. Modelo de dados ----------------------------------------------------
+## 3. Modelo de dados 
 
 ### 3.1 Relacionamentos
 
@@ -289,8 +289,7 @@ Componentes compartilhados:
 
 Não incluir ícone de favoritos, avaliações, chat ou tela administrativa.
 
-### 7.2 Páginas ----------------------------------------------------
-
+### 7.2 Páginas 
 | Página | Objetivo, dados e ações | API e estados |
 | --- | --- | --- |
 | Login | campos e-mail e senha; entrar | POST /auth/login. Carregando, credencial inválida e sucesso com redirecionamento. |
