@@ -129,7 +129,7 @@ export default function App() {
   const [aluno, setAluno] = useState(null); const [page, setPage] = useState("menu"); const [selected, setSelected] = useState(null); const [editing, setEditing] = useState(null);
   useEffect(() => { if (localStorage.getItem("brecho_token")) api("/me").then((r) => setAluno(r.aluno)).catch(() => localStorage.removeItem("brecho_token")); }, []);
   const content = useMemo(() => {
-    if (selected) return <Detail anuncio={selected} aluno={aluno} onBack={() => setSelected(null)} onReserved={() => setPage("reservas")} />;
+    if (selected) return <Detail anuncio={selected} aluno={aluno} onBack={() => setSelected(null)} onReserved={() => { setSelected(null); setPage("reservas"); }} />;
     if (editing) return <AnnouncementForm editing={editing} onDone={() => { setEditing(null); setPage("vitrine"); }} />;
     if (page === "brecho") return <Catalog onDetails={setSelected} />;
     if (page === "cadastro") return <AnnouncementForm onDone={() => setPage("vitrine")} />;

@@ -29,6 +29,8 @@ module.exports = (sequelize) =>
     },
     {
       tableName: "anuncios",
-      underscored: true
+      underscored: true,
+      createdAt: "criado_em",
+      updatedAt: "atualizado_em"
     }
   );

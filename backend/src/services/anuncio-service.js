@@ -3,7 +3,12 @@ const AppError = require("../errors/app-error");
 const { getDatabase } = require("../models");
 const { expireDueReservationsNow } = require("./expiration-service");
 const { serializeAnuncio } = require("./serialization");
-const { announcementPayload, optionalAnnouncementStatus } = require("./validation");
+const {
+  announcementPayload,
+  optionalAnnouncementStatus,
+  optionalCategory,
+  optionalCondition
+} = require("./validation");
 
 const authorInclude = [{ association: "autor", attributes: ["id", "nome", "email"] }];
 
@@ -13,8 +18,10 @@ async function listAnnouncements(query) {
   const page = Math.max(Number.parseInt(query.pagina, 10) || 1, 1);
   const limit = Math.min(Math.max(Number.parseInt(query.limite, 10) || 12, 1), 50);
   const where = { status: "DISPONIVEL" };
-  if (query.categoria) where.categoria = query.categoria;
-  if (query.estado) where.estado_conservacao = query.estado;
+  const category = optionalCategory(query.categoria);
+  const condition = optionalCondition(query.estado);
+  if (category) where.categoria = category;
+  if (condition) where.estado_conservacao = condition;
   if (query.busca && query.busca.trim()) {
     where[Op.or] = [
       { item: { [Op.iLike]: "%" + query.busca.trim() + "%" } },

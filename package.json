@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "node --env-file-if-exists=.env --watch backend/src/server.js",
     "start": "node --env-file-if-exists=.env backend/src/server.js",
-    "test": "node --test backend/tests/health.test.js backend/tests/error-handler.test.js backend/tests/domain.test.js",
+    "test": "node --test backend/tests/health.test.js backend/tests/error-handler.test.js backend/tests/domain.test.js backend/tests/model-mapping.test.js",
     "frontend:dev": "vite --host 127.0.0.1",
     "frontend:build": "vite build",
     "db:migrate": "node --env-file-if-exists=.env ./node_modules/sequelize-cli/lib/sequelize db:migrate --config backend/src/config/database.js --migrations-path backend/migrations",
-    "db:seed": "node --env-file-if-exists=.env ./node_modules/sequelize-cli/lib/sequelize db:seed:all --config backend/src/config/database.js --seeders-path backend/seeders"
+    "db:seed": "node --env-file-if-exists=.env ./node_modules/sequelize-cli/lib/sequelize db:seed:all --config backend/src/config/database.js --seeders-path backend/seeders",
+    "db:reset-demo": "node --env-file-if-exists=.env backend/scripts/redefinir-demo.js"
   },
   "keywords": [],
   "type": "commonjs",

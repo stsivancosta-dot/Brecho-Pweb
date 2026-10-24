@@ -13,7 +13,7 @@ module.exports = {
     await queryInterface.bulkInsert("alunos", [
       { id: "11111111-1111-4111-8111-111111111111", nome: "Ana Silva", email: "ana@escola.local", senha_hash: hash, criado_em: now, atualizado_em: now },
       { id: "22222222-2222-4222-8222-222222222222", nome: "Bruno Costa", email: "bruno@escola.local", senha_hash: hash, criado_em: now, atualizado_em: now }
-    ]);
+    ], { ignoreDuplicates: true });
   },
   async down(queryInterface) {
     await queryInterface.bulkDelete("alunos", {

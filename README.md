@@ -79,3 +79,5 @@ Pré-requisito: Node.js 24 ou compatível.
 6. Em outro terminal, execute npm run frontend:dev para abrir a interface.
 
 O projeto usa PostgreSQL real. Não há armazenamento em memória ou simulação de persistência.
+
+Se alterar DEMO_PASSWORD depois de criar as contas, execute npm run db:reset-demo para atualizar somente as senhas das contas de demonstração existentes.

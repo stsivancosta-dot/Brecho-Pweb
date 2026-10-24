@@ -47,6 +47,14 @@ function optionalStatus(value, values, label) {
 
 module.exports = {
   announcementPayload,
+  optionalCategory: (value) => {
+    if (value === undefined || value === "") return undefined;
+    return allowed(value, CATEGORIAS, "Categoria");
+  },
+  optionalCondition: (value) => {
+    if (value === undefined || value === "") return undefined;
+    return allowed(value, ESTADOS_CONSERVACAO, "Estado de conservação");
+  },
   optionalAnnouncementStatus: (value) => optionalStatus(value, STATUS_ANUNCIO, "Status"),
   optionalReservationStatus: (value) => optionalStatus(value, STATUS_RESERVA, "Status")
 };
