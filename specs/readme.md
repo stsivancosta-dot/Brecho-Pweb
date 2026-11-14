@@ -1,4 +1,4 @@
-# Brechó Estudantil
+# Brechó Estudantil ana@escola.local
 
 > Um espaço simples para alunos anunciarem, encontrarem, venderem ou trocarem itens ligados à vida escolar.
 

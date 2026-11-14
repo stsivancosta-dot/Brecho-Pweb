@@ -61,6 +61,39 @@ async function confirmReservation(reservaId, authorId) {
   });
 }
 
+async function cancelReservation(reservaId, authorId) {
+  const { sequelize, Reserva, Anuncio } = getDatabase();
+  return sequelize.transaction(async (transaction) => {
+    await expireDueReservations(transaction);
+    const reservation = await Reserva.findByPk(reservaId, {
+      transaction,
+      lock: transaction.LOCK.UPDATE
+    });
+    if (!reservation) {
+      throw new AppError(404, "RESERVA_NAO_ENCONTRADA", "Reserva não encontrada.");
+    }
+
+    const announcement = await Anuncio.findByPk(reservation.anuncio_id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE
+    });
+    if (!announcement || announcement.autor_id !== authorId) {
+      throw new AppError(403, "SEM_AUTORIA", "Você não pode cancelar esta reserva.");
+    }
+    if (reservation.status !== "ATIVA" || announcement.status !== "RESERVADO") {
+      throw new AppError(400, "RESERVA_NAO_CANCELAVEL", "Esta reserva não pode ser cancelada.");
+    }
+
+    const now = new Date();
+    await reservation.update(
+      { status: "CANCELADA", encerrado_em: now },
+      { transaction }
+    );
+    await announcement.update({ status: "DISPONIVEL" }, { transaction });
+    return serializeReserva(reservation);
+  });
+}
+
 async function listMyReservations(interessadoId, status) {
   const allowedStatus = optionalReservationStatus(status);
   const { Reserva } = getDatabase();
@@ -100,6 +133,7 @@ async function listReceivedReservations(authorId, status) {
 }
 
 module.exports = {
+  cancelReservation,
   confirmReservation,
   createReservation,
   expiresInThreeDays,

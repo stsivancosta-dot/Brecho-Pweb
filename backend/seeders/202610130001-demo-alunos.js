@@ -5,8 +5,8 @@ const bcrypt = require("bcryptjs");
 module.exports = {
   async up(queryInterface) {
     const password = process.env.DEMO_PASSWORD;
-    if (!password || password.length < 8) {
-      throw new Error("DEMO_PASSWORD deve possuir ao menos 8 caracteres para executar a seed.");
+    if (!password || password.length < 6) {
+      throw new Error("DEMO_PASSWORD deve possuir ao menos 6 caracteres para executar a seed.");
     }
     const hash = await bcrypt.hash(password, 12);
     const now = new Date();

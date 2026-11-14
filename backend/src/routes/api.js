@@ -21,6 +21,7 @@ apiRouter.delete("/anuncios/:id", asyncHandler(anuncioController.remove));
 apiRouter.get("/me/anuncios", asyncHandler(anuncioController.mine));
 apiRouter.post("/anuncios/:id/reservas", asyncHandler(reservaController.create));
 apiRouter.patch("/reservas/:id/confirmacao", asyncHandler(reservaController.confirm));
+apiRouter.patch("/reservas/:id/cancelamento", asyncHandler(reservaController.cancel));
 apiRouter.get("/me/reservas", asyncHandler(reservaController.mine));
 apiRouter.get("/me/reservas-recebidas", asyncHandler(reservaController.received));
 apiRouter.get("/me/negociacoes", asyncHandler(meController.negotiations));

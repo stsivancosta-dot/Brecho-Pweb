@@ -76,14 +76,10 @@ async function cancelAnnouncement(id, authorId) {
     const announcement = await Anuncio.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
     if (!announcement) throw new AppError(404, "ANUNCIO_NAO_ENCONTRADO", "Anúncio não encontrado.");
     if (announcement.autor_id !== authorId) throw new AppError(403, "SEM_AUTORIA", "Você não pode cancelar este anúncio.");
-    if (announcement.status === "CONCLUIDO" || announcement.status === "CANCELADO") {
+    if (announcement.status !== "DISPONIVEL") {
       throw new AppError(400, "ANUNCIO_IMUTAVEL", "Este anúncio não pode ser cancelado.");
     }
     const now = new Date();
-    const activeReservation = await Reserva.findOne({
-      where: { anuncio_id: id, status: "ATIVA" }, transaction, lock: transaction.LOCK.UPDATE
-    });
-    if (activeReservation) await activeReservation.update({ status: "CANCELADA", encerrado_em: now }, { transaction });
     await announcement.update({ status: "CANCELADO", cancelado_em: now }, { transaction });
   });
 }

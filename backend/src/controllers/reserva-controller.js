@@ -10,6 +10,11 @@ async function confirm(request, response) {
     await reservaService.confirmReservation(request.params.id, request.aluno.id)
   );
 }
+async function cancel(request, response) {
+  return response.status(200).json(
+    await reservaService.cancelReservation(request.params.id, request.aluno.id)
+  );
+}
 async function mine(request, response) {
   return response.status(200).json({
     dados: await reservaService.listMyReservations(request.aluno.id, request.query.status)
@@ -21,4 +26,4 @@ async function received(request, response) {
   });
 }
 
-module.exports = { confirm, create, mine, received };
+module.exports = { cancel, confirm, create, mine, received };

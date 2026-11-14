@@ -5,8 +5,8 @@ async function main() {
   const { sequelize, Aluno } = getDatabase();
   const senha = process.env.DEMO_PASSWORD;
 
-  if (!senha || senha.length < 8 || senha === "sua_senha_de_demonstracao") {
-    throw new Error("Defina uma DEMO_PASSWORD própria, com pelo menos 8 caracteres, no .env.");
+  if (!senha || senha.length < 6 || senha === "sua_senha_de_demonstracao") {
+    throw new Error("Defina uma DEMO_PASSWORD própria, com pelo menos 6 caracteres, no .env.");
   }
 
   try {
