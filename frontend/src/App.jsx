@@ -71,7 +71,7 @@ function Message({ message, type = "error" }) {
    TELA UNIVERSAL DE LOGIN (FIGMA PAGE 1)
    ========================================================== */
 function Login({ onLogin }) {
-  const [email, setEmail] = useState("ana.ribeiro@aluno.edu.br");
+  const [email, setEmail] = useState("ana@escola.local");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
