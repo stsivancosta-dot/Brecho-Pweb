@@ -1,14 +1,28 @@
+const { fn, col, literal } = require("sequelize");
 const { getDatabase } = require("../models");
 const { expireDueReservationsNow } = require("./expiration-service");
 
 async function getIndicators() {
   await expireDueReservationsNow();
-  const { sequelize } = getDatabase();
+  const { Anuncio } = getDatabase();
   const [byStatus, byCategory] = await Promise.all([
-    sequelize.query('SELECT status, COUNT(*)::int AS total FROM anuncios GROUP BY status ORDER BY status'),
-    sequelize.query('SELECT categoria, COUNT(*)::int AS total FROM anuncios GROUP BY categoria ORDER BY categoria')
+    Anuncio.findAll({
+      attributes: ["status", [fn("COUNT", col("id")), "total"]],
+      group: ["status"],
+      order: [["status", "ASC"]],
+      raw: true
+    }),
+    Anuncio.findAll({
+      attributes: ["categoria", [fn("COUNT", col("id")), "total"]],
+      group: ["categoria"],
+      order: [["categoria", "ASC"]],
+      raw: true
+    })
   ]);
-  return { totalPorStatus: byStatus[0], totalPorCategoria: byCategory[0] };
+  return {
+    totalPorStatus: byStatus.map(r => ({ status: r.status, total: Number(r.total) })),
+    totalPorCategoria: byCategory.map(r => ({ categoria: r.categoria, total: Number(r.total) }))
+  };
 }
 
 module.exports = { getIndicators };

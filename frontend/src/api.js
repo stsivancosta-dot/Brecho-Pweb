@@ -10,7 +10,7 @@ export async function api(path, options = {}) {
   const response = await fetch("/api" + path, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: "Bearer " + token } : {}),
       ...(options.headers || {})
     }

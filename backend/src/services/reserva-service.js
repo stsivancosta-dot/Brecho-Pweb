@@ -77,10 +77,14 @@ async function cancelReservation(reservaId, authorId) {
       transaction,
       lock: transaction.LOCK.UPDATE
     });
-    if (!announcement || announcement.autor_id !== authorId) {
+
+    const isAuthor = announcement && announcement.autor_id === authorId;
+    const isInterested = reservation.interessado_id === authorId;
+
+    if (!isAuthor && !isInterested) {
       throw new AppError(403, "SEM_AUTORIA", "Você não pode cancelar esta reserva.");
     }
-    if (reservation.status !== "ATIVA" || announcement.status !== "RESERVADO") {
+    if (reservation.status !== "ATIVA" || !announcement || announcement.status !== "RESERVADO") {
       throw new AppError(400, "RESERVA_NAO_CANCELAVEL", "Esta reserva não pode ser cancelada.");
     }
 

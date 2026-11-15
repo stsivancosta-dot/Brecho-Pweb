@@ -73,6 +73,7 @@ async function updateAnnouncement(id, authorId, body) {
 async function cancelAnnouncement(id, authorId) {
   const { sequelize, Anuncio, Reserva } = getDatabase();
   return sequelize.transaction(async (transaction) => {
+    await expireDueReservations(transaction);
     const announcement = await Anuncio.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
     if (!announcement) throw new AppError(404, "ANUNCIO_NAO_ENCONTRADO", "Anúncio não encontrado.");
     if (announcement.autor_id !== authorId) throw new AppError(403, "SEM_AUTORIA", "Você não pode cancelar este anúncio.");

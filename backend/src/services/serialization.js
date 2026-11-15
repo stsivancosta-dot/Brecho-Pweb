@@ -5,7 +5,7 @@ function serializeAluno(aluno) {
 
 function serializeAnuncio(anuncio, includeAuthor = true) {
   const source = anuncio.get ? anuncio.get({ plain: true }) : anuncio;
-  const price = Number(source.preco);
+  const price = Number(source.preco ?? 0);
   const result = {
     id: source.id, item: source.item, descricao: source.descricao,
     categoria: source.categoria, estadoConservacao: source.estado_conservacao,

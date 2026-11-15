@@ -1248,16 +1248,34 @@ function BuyerNegotiations() {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("TODOS");
 
-  useEffect(() => {
+  function loadData() {
     setLoading(true);
     api("/me/reservas")
       .then(res => setReservas(res.dados || []))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadData();
   }, []);
+
+  async function handleCancelReservation(reservaId) {
+    if (!confirm("Deseja cancelar esta reserva? O item voltará a ficar disponível para outros alunos.")) return;
+    setError("");
+    setSuccess("");
+    try {
+      await api(`/reservas/${reservaId}/cancelamento`, { method: "PATCH" });
+      setSuccess("Reserva cancelada. O item voltou a Disponível.");
+      loadData();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
 
   const ativas = reservas.filter(r => r.status === "ATIVA");
   const historico = reservas.filter(r => r.status !== "ATIVA");
@@ -1289,6 +1307,7 @@ function BuyerNegotiations() {
       </div>
 
       <Message message={error} />
+      <Message message={success} type="success" />
 
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1318,6 +1337,16 @@ function BuyerNegotiations() {
                   Anunciado por <strong>{res.anuncio?.autor?.nome}</strong>
                 </div>
                 <div className="item-price" style={{ marginTop: "8px" }}>{res.anuncio?.precoExibicao}</div>
+
+                <div style={{ marginTop: "8px" }}>
+                  <button
+                    className="btn btn-outline-danger"
+                    style={{ fontSize: "13px", padding: "7px 14px" }}
+                    onClick={() => handleCancelReservation(res.id)}
+                  >
+                    Cancelar reserva
+                  </button>
+                </div>
               </div>
 
               <div className="side-panel-card support-bg" style={{ padding: "16px" }}>
@@ -1418,6 +1447,7 @@ export default function App() {
 
   function handleLogout() {
     localStorage.removeItem("brecho_token");
+    localStorage.removeItem("brecho_role");
     setAluno(null);
   }
 
