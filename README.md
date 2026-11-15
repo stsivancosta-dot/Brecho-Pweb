@@ -81,3 +81,135 @@ Pré-requisito: Node.js 24 ou compatível.
 O projeto usa PostgreSQL real. Não há armazenamento em memória ou simulação de persistência.
 
 Se alterar DEMO_PASSWORD depois de criar as contas, execute npm run db:reset-demo para atualizar somente as senhas das contas de demonstração existentes.
+
+# Guia de instalação — Brechó Estudantil
+
+Este guia apresenta o procedimento necessário para clonar, configurar e executar o projeto **Brechó Estudantil** em uma máquina nova ou em outra pasta.
+
+## 1. Configuração do banco de dados pelo pgAdmin
+
+Será necessário acessar o pgAdmin apenas uma vez para criar o banco de dados vazio.
+
+Não é necessário criar tabelas ou configurar relacionamentos manualmente, pois o próprio código do projeto realiza essas operações.
+
+Siga os passos:
+
+1. Abra o pgAdmin e conecte-se ao PostgreSQL.
+2. Clique com o botão direito em **Databases**.
+3. Selecione **Create → Database...**.
+4. Defina o nome do banco de dados como:
+
+   ```text
+   brecho_estudantil
+   ```
+
+5. Clique em **Save**.
+
+Após a criação, o pgAdmin não precisará ser utilizado novamente durante a instalação.
+
+## 2. Comandos e configurações no terminal
+
+Abra um terminal (PowerShell, Git Bash ou Prompt de Comando) e execute as etapas na ordem apresentada.
+
+### Passo 1 — Clonar o repositório
+
+```bash
+git clone https://github.com/stsivancosta-dot/Brecho-Pweb.git
+cd Brecho-Pweb
+```
+
+### Passo 2 — Instalar as dependências
+
+```bash
+npm install
+```
+
+### Passo 3 — Configurar o arquivo `.env`
+
+Por segurança, o arquivo `.env` não é enviado ao GitHub, pois está incluído no `.gitignore`.
+
+Por isso, será necessário criá-lo a partir do arquivo `.env.example`.
+
+**No Windows (PowerShell):**
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Alternativamente, você pode criar manualmente um arquivo chamado `.env` na raiz do projeto.
+
+Abra o arquivo e configure as informações de conexão com o PostgreSQL:
+
+```env
+PORT=3000
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=brecho_estudantil
+DB_USER=postgres
+DB_PASSWORD=sua_senha_do_postgres
+JWT_SECRET=qualquer_texto_longo_aqui_para_seguranca
+DEMO_PASSWORD=qwerty
+```
+
+**Atenção:** substitua `sua_senha_do_postgres` pela senha definida durante a instalação do PostgreSQL.
+
+### Passo 4 — Criar as tabelas e os usuários de teste
+
+Execute os scripts responsáveis pela configuração automática do banco de dados:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+Esses comandos possuem as seguintes funções:
+
+- **`db:migrate`:** cria a estrutura do banco de dados, incluindo as tabelas de alunos, anúncios e reservas.
+- **`db:seed`:** cadastra os usuários e os dados iniciais de demonstração, incluindo Ana e Bruno, com a senha `qwerty`.
+
+## 3. Executando o projeto
+
+Após concluir as configurações, será necessário abrir **dois terminais** na pasta raiz do projeto.
+
+### Terminal 1 — Backend
+
+Execute:
+
+```bash
+npm run dev
+```
+
+Esse comando inicia o servidor responsável pelas operações do sistema.
+
+### Terminal 2 — Frontend
+
+Execute:
+
+```bash
+npm run frontend:dev
+```
+
+Esse comando inicia a aplicação frontend.
+
+### Acessando o sistema
+
+Após iniciar os dois servidores, acesse no navegador o endereço exibido pelo terminal do frontend.
+
+Exemplo:
+
+```text
+http://127.0.0.1:5173
+```
+
+### Dados de acesso para teste
+
+Utilize as seguintes credenciais para entrar no sistema:
+
+| Campo | Informação |
+|---|---|
+| E-mail | `ana@escola.local` |
+| Senha | `qwerty` |
+
+---
+
+**Instalação concluída!** O projeto estará configurado e pronto para utilização local.
