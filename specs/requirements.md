@@ -1,6 +1,6 @@
 # Requirements — Brechó Estudantil
 
-## 1. Objetivo e problema  ----------------------------------------------------
+## 1. Objetivo e problema  -----------------------------------------------------
 
 O Brechó Estudantil é uma aplicação web para alunos anunciarem, encontrarem, reservarem e concluírem negociações de itens relacionados à vida escolar. Ela concentra ofertas que hoje circulam informalmente e registra o fluxo básico de uma negociação.
 
