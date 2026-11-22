@@ -1,4 +1,4 @@
-# Tasks — Brechó Estudantil
+# Tasks — Brechó Estudantil ---------------------------------
 
 ## 1. Convenções
 
