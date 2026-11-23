@@ -1,6 +1,12 @@
 function serializeAluno(aluno) {
   const source = aluno.get ? aluno.get({ plain: true }) : aluno;
-  return { id: source.id, nome: source.nome, email: source.email };
+  return {
+    id: source.id,
+    nome: source.nome,
+    email: source.email,
+    fotoPerfil: source.foto_perfil || null,
+    criadoEm: source.criado_em || null
+  };
 }
 
 function serializeAnuncio(anuncio, includeAuthor = true) {
@@ -11,6 +17,7 @@ function serializeAnuncio(anuncio, includeAuthor = true) {
     categoria: source.categoria, estadoConservacao: source.estado_conservacao,
     preco: price,
     precoExibicao: price === 0 ? "Troca" : "R$ " + price.toFixed(2).replace(".", ","),
+    fotoUrl: source.foto_url || null,
     status: source.status, criadoEm: source.criado_em, atualizadoEm: source.atualizado_em,
     concluidoEm: source.concluido_em, canceladoEm: source.cancelado_em
   };

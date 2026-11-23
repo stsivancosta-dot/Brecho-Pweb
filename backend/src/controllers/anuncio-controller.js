@@ -7,10 +7,16 @@ async function get(request, response) {
   return response.status(200).json(await anuncioService.getAnnouncement(request.params.id));
 }
 async function create(request, response) {
-  return response.status(201).json(await anuncioService.createAnnouncement(request.aluno.id, request.body || {}));
+  const filename = request.file ? request.file.filename : null;
+  return response.status(201).json(
+    await anuncioService.createAnnouncement(request.aluno.id, request.body || {}, filename)
+  );
 }
 async function update(request, response) {
-  return response.status(200).json(await anuncioService.updateAnnouncement(request.params.id, request.aluno.id, request.body || {}));
+  const filename = request.file ? request.file.filename : null;
+  return response.status(200).json(
+    await anuncioService.updateAnnouncement(request.params.id, request.aluno.id, request.body || {}, filename)
+  );
 }
 async function remove(request, response) {
   await anuncioService.cancelAnnouncement(request.params.id, request.aluno.id);

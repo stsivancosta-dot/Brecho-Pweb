@@ -24,6 +24,7 @@ module.exports = (sequelize) =>
         allowNull: false,
         defaultValue: "DISPONIVEL"
       },
+      foto_url: { type: DataTypes.STRING(260), allowNull: true },
       concluido_em: { type: DataTypes.DATE, allowNull: true },
       cancelado_em: { type: DataTypes.DATE, allowNull: true }
     },

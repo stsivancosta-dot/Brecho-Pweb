@@ -7,10 +7,12 @@ export class ApiError extends Error {
 
 export async function api(path, options = {}) {
   const token = localStorage.getItem("brecho_token");
+  const isFormData = options.body instanceof FormData;
   const response = await fetch("/api" + path, {
     ...options,
     headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      // Não definir Content-Type para FormData — o browser define automaticamente com boundary
+      ...(options.body && !isFormData ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: "Bearer " + token } : {}),
       ...(options.headers || {})
     }

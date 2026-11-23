@@ -43,8 +43,9 @@ async function getAnnouncement(id) {
   return serializeAnuncio(announcement);
 }
 
-async function createAnnouncement(authorId, body) {
+async function createAnnouncement(authorId, body, filename) {
   const attributes = announcementPayload(body);
+  if (filename) attributes.foto_url = filename;
   const { sequelize, Aluno, Anuncio } = getDatabase();
   return sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE }, async (transaction) => {
     await Aluno.findByPk(authorId, { transaction, lock: transaction.LOCK.UPDATE });
@@ -57,8 +58,9 @@ async function createAnnouncement(authorId, body) {
   });
 }
 
-async function updateAnnouncement(id, authorId, body) {
+async function updateAnnouncement(id, authorId, body, filename) {
   const attributes = announcementPayload(body, true);
+  if (filename) attributes.foto_url = filename;
   const { sequelize, Anuncio } = getDatabase();
   return sequelize.transaction(async (transaction) => {
     const announcement = await Anuncio.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });

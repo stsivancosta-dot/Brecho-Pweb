@@ -13,13 +13,15 @@ async function main() {
     await sequelize.authenticate();
 
     const hash = await bcrypt.hash(senha, 12);
-    const [ana, bruno] = await Promise.all([
+    const [ana, bruno, joao] = await Promise.all([
       Aluno.update({ senha_hash: hash }, { where: { email: "ana@escola.local" } }),
-      Aluno.update({ senha_hash: hash }, { where: { email: "bruno@escola.local" } })
+      Aluno.update({ senha_hash: hash }, { where: { email: "bruno@escola.local" } }),
+      Aluno.update({ senha_hash: hash }, { where: { email: "joao@escola.local" } })
     ]);
 
     console.log("Ana atualizada:", ana[0] === 1);
     console.log("Bruno atualizado:", bruno[0] === 1);
+    console.log("João atualizado:", joao[0] === 1);
   } finally {
     await sequelize.close();
   }

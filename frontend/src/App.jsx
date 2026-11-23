@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import { api } from "./api";
 
 const CATEGORIAS = [
@@ -65,6 +65,34 @@ function StatusBadge({ status }) {
 
 function Message({ message, type = "error" }) {
   return message ? <div className={`message ${type}`}>{message}</div> : null;
+}
+
+/* Avatar de perfil — exibe foto ou iniciais */
+function Avatar({ nome, fotoPerfil, size = 48 }) {
+  const initials = (nome || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+  if (fotoPerfil) {
+    return (
+      <img
+        src={"/uploads/perfis/" + fotoPerfil}
+        alt={nome}
+        style={{
+          width: size, height: size, borderRadius: "50%",
+          objectFit: "cover", border: "2px solid var(--border-light)", flexShrink: 0
+        }}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: "50%",
+      background: "var(--primary)", color: "#fff",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.36, fontWeight: 700, flexShrink: 0,
+      border: "2px solid var(--border-light)"
+    }}>
+      {initials}
+    </div>
+  );
 }
 
 /* ==========================================================
@@ -325,6 +353,13 @@ function SellerDashboard({ aluno, onNavigate, onEditAnnouncement }) {
               {cardsView.map((item) => (
                 <div key={item.id} className="item-card">
                   <div className="item-card-top">
+                    {item.fotoUrl && (
+                      <img
+                        src={`/uploads/anuncios/${item.fotoUrl}`}
+                        alt={item.item}
+                        className="item-card-image"
+                      />
+                    )}
                     <div className="item-card-meta">
                       <span className="item-category-tag">{formatLabel(item.categoria)} · {formatLabel(item.estadoConservacao)}</span>
                       <StatusBadge status={item.status} />
@@ -482,6 +517,13 @@ function Catalog({ aluno, isAnunciante, onSelectItem }) {
           {items.map((item) => (
             <div key={item.id} className="item-card">
               <div className="item-card-top">
+                {item.fotoUrl && (
+                  <img
+                    src={`/uploads/anuncios/${item.fotoUrl}`}
+                    alt={item.item}
+                    className="item-card-image"
+                  />
+                )}
                 <div className="item-card-meta">
                   <span className="item-category-tag">{formatLabel(item.categoria)} · {formatLabel(item.estadoConservacao)}</span>
                   <StatusBadge status={item.status} />
@@ -546,6 +588,14 @@ function ItemDetail({ item, aluno, onBack, onReserved }) {
             <span className="item-category-tag">{formatLabel(item.categoria)} · {formatLabel(item.estadoConservacao)}</span>
             <StatusBadge status={item.status} />
           </div>
+
+          {item.fotoUrl && (
+            <img
+              src={`/uploads/anuncios/${item.fotoUrl}`}
+              alt={item.item}
+              className="item-detail-image"
+            />
+          )}
 
           <h1 className="page-title" style={{ fontSize: "28px" }}>{item.item}</h1>
           <div className="item-price" style={{ fontSize: "26px" }}>{item.precoExibicao}</div>
@@ -616,6 +666,8 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
   };
 
   const [form, setForm] = useState(initial);
+  const [foto, setFoto] = useState(null);
+  const [preview, setPreview] = useState(editing?.fotoUrl ? `/uploads/anuncios/${editing.fotoUrl}` : null);
   const [activeCount, setActiveCount] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -631,28 +683,40 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
     setForm(prev => ({ ...prev, [name]: value }));
   }
 
+  function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFoto(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  }
+
   async function submit(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const payload = {
-        item: form.item,
-        descricao: form.descricao,
-        categoria: form.categoria,
-        estadoConservacao: form.estadoConservacao,
-        preco: form.preco === "" ? null : Number(form.preco)
-      };
+      const formData = new FormData();
+      formData.append("item", form.item);
+      formData.append("descricao", form.descricao);
+      formData.append("categoria", form.categoria);
+      formData.append("estadoConservacao", form.estadoConservacao);
+      if (form.preco !== "" && form.preco !== null) {
+        formData.append("preco", String(Number(form.preco)));
+      }
+      if (foto) {
+        formData.append("foto", foto);
+      }
 
       if (editing) {
         await api(`/anuncios/${editing.id}`, {
           method: "PATCH",
-          body: JSON.stringify(payload)
+          body: formData
         });
       } else {
         await api("/anuncios", {
           method: "POST",
-          body: JSON.stringify(payload)
+          body: formData
         });
       }
       onDone();
@@ -744,6 +808,29 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
               onChange={(e) => field("descricao", e.target.value)}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Foto do item <span>opcional</span></label>
+            {preview && (
+              <div style={{ marginBottom: "8px" }}>
+                <img
+                  src={preview}
+                  alt="Prévia"
+                  style={{ width: "100%", maxHeight: "180px", objectFit: "cover", borderRadius: "10px", border: "1px solid var(--border-light)" }}
+                />
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/png, image/jpeg, image/webp"
+              onChange={handleFileChange}
+              className="input-control"
+              style={{ padding: "8px" }}
+            />
+            <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+              Aceita imagens JPG, PNG ou WebP de até 5MB.
+            </span>
           </div>
 
           <Message message={error} />
@@ -1410,6 +1497,174 @@ function BuyerNegotiations() {
 }
 
 /* ==========================================================
+   PERFIL DO ESTUDANTE (INFORMAÇÕES E FOTO DE PERFIL)
+   ========================================================== */
+function ProfileView({ aluno, onAlunoUpdated }) {
+  const [perfil, setPerfil] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const fileInputRef = useRef(null);
+
+  async function loadProfile() {
+    setLoading(true);
+    try {
+      const data = await api("/me/perfil");
+      setPerfil(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  async function handlePhotoSelected(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const formData = new FormData();
+      formData.append("foto", file);
+
+      const res = await api("/me/foto", {
+        method: "PATCH",
+        body: formData
+      });
+
+      setSuccess("Foto de perfil atualizada com sucesso!");
+      onAlunoUpdated(res.aluno);
+      loadProfile();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Meu perfil</h1>
+          <p className="page-subtitle">Visualize suas informações acadêmicas e gerencie sua foto de perfil.</p>
+        </div>
+      </div>
+
+      <Message message={error} />
+      <Message message={success} type="success" />
+
+      {loading ? (
+        <p style={{ color: "var(--text-muted)" }}>Carregando perfil...</p>
+      ) : (
+        <div className="form-layout">
+          <div className="form-card" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              <Avatar nome={aluno.nome} fotoPerfil={aluno.fotoPerfil} size={84} />
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <h2 style={{ fontSize: "22px", fontWeight: "700", color: "var(--primary-dark)" }}>
+                  {aluno.nome}
+                </h2>
+                <div style={{ fontSize: "14px", color: "var(--text-muted)" }}>
+                  Conta institucional do Brechó Estudantil
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/png, image/jpeg, image/webp"
+                    style={{ display: "none" }}
+                    onChange={handlePhotoSelected}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ fontSize: "13px", padding: "6px 14px" }}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? "Enviando..." : "Alterar foto de perfil"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>NOME COMPLETO</span>
+                <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "600", marginTop: "2px" }}>
+                  {aluno.nome}
+                </p>
+              </div>
+
+              <div>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>E-MAIL ESTUDANTIL</span>
+                <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "600", marginTop: "2px" }}>
+                  {aluno.email}
+                </p>
+              </div>
+
+              <div>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>DATA DE CADASTRO</span>
+                <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "500", marginTop: "2px" }}>
+                  {formatDate(aluno.criadoEm || perfil?.criadoEm)}
+                </p>
+              </div>
+
+              <div>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>STATUS DA CONTA</span>
+                <p style={{ fontSize: "15px", color: "var(--primary)", fontWeight: "600", marginTop: "2px" }}>
+                  Estudante ativo
+                </p>
+              </div>
+            </div>
+
+            <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "16px" }}>
+              <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>SUA PRIVACIDADE</span>
+              <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.5" }}>
+                Seu e-mail é utilizado apenas para autenticação e acompanhamento de negociações reservadas por você. O contato e a entrega dos itens ocorrem sempre de forma presencial no ambiente escolar.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div className="side-panel-card support-bg">
+              <div className="side-panel-title">Resumo de atividade</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "14px", color: "var(--primary-dark)" }}>Anúncios ativos</span>
+                  <strong style={{ fontSize: "18px", color: "var(--primary-dark)" }}>{perfil?.totalAtivos ?? 0} / 5</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "14px", color: "var(--primary-dark)" }}>Negociações concluídas</span>
+                  <strong style={{ fontSize: "18px", color: "var(--primary)" }}>{perfil?.totalConcluidos ?? 0}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="side-panel-card">
+              <div className="side-panel-title">Foto de perfil</div>
+              <div className="side-panel-desc">
+                Sua foto de perfil fica visível no menu lateral e facilita a identificação quando outros estudantes forem encontrá-lo pessoalmente para concluir a troca ou entrega do item.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ==========================================================
    APLICAÇÃO PRINCIPAL COM CONTROLE DE PERFIL (MUDAR CARGO)
    ========================================================== */
 export default function App() {
@@ -1474,15 +1729,30 @@ export default function App() {
 
         {/* PERFIL E SELETOR DE CARGO */}
         <div className="profile-card">
-          <div>
-            <div className="profile-name">{aluno.nome}</div>
-            <div className="profile-role">
-              {isAnunciante ? "Aluno anunciante" : "Aluno interessado"}
+          <div className="profile-avatar-wrap">
+            <Avatar nome={aluno.nome} fotoPerfil={aluno.fotoPerfil} size={44} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="profile-name" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {aluno.nome}
+              </div>
+              <div className="profile-role">
+                {isAnunciante ? "Aluno anunciante" : "Aluno interessado"}
+              </div>
             </div>
           </div>
-          <button className="role-switch-btn" onClick={handleRoleToggle}>
-            Mudar cargo ⇄
-          </button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="role-switch-btn" style={{ flex: 1 }} onClick={handleRoleToggle}>
+              Mudar cargo ⇄
+            </button>
+            <button
+              className="role-switch-btn"
+              style={{ padding: "8px 10px" }}
+              title="Ver meu perfil"
+              onClick={() => { setSelectedItem(null); setEditingItem(null); setPage("perfil"); }}
+            >
+              Perfil
+            </button>
+          </div>
         </div>
 
         {/* NAVEGAÇÃO CONDICIONAL AO CARGO */}
@@ -1523,6 +1793,12 @@ export default function App() {
               >
                 Histórico
               </button>
+              <button
+                className={`nav-item ${page === "perfil" ? "active" : ""}`}
+                onClick={() => { setSelectedItem(null); setEditingItem(null); setPage("perfil"); }}
+              >
+                Meu perfil
+              </button>
             </>
           ) : (
             <>
@@ -1543,6 +1819,12 @@ export default function App() {
                 onClick={() => { setSelectedItem(null); setEditingItem(null); setPage("minhas-negociacoes"); }}
               >
                 Minhas negociações
+              </button>
+              <button
+                className={`nav-item ${page === "perfil" ? "active" : ""}`}
+                onClick={() => { setSelectedItem(null); setEditingItem(null); setPage("perfil"); }}
+              >
+                Meu perfil
               </button>
             </>
           )}
@@ -1568,8 +1850,11 @@ export default function App() {
               page === "loja" ? "MINHA LOJA · ESPAÇO DO ANUNCIANTE" :
               page === "brecho" ? "BRECHÓ · ESPAÇO DO ANUNCIANTE" :
               page === "cadastro" ? "ESPAÇO DO ANUNCIANTE" :
-              page === "gerenciamento" ? "ESPAÇO DO ANUNCIANTE" : "ESPAÇO DO ANUNCIANTE"
-            ) : "ESPAÇO DO INTERESSADO"}
+              page === "gerenciamento" ? "ESPAÇO DO ANUNCIANTE" :
+              page === "perfil" ? "MEU PERFIL · DADOS ACADÊMICOS" : "ESPAÇO DO ANUNCIANTE"
+            ) : (
+              page === "perfil" ? "MEU PERFIL · DADOS ACADÊMICOS" : "ESPAÇO DO INTERESSADO"
+            )}
           </span>
           <span className="header-date">{currentDateText}</span>
         </header>
@@ -1625,6 +1910,9 @@ export default function App() {
               {page === "historico" && (
                 <HistoryView aluno={aluno} onNavigate={setPage} />
               )}
+              {page === "perfil" && (
+                <ProfileView aluno={aluno} onAlunoUpdated={setAluno} />
+              )}
             </>
           ) : (
             <>
@@ -1640,6 +1928,9 @@ export default function App() {
               )}
               {page === "minhas-negociacoes" && (
                 <BuyerNegotiations />
+              )}
+              {page === "perfil" && (
+                <ProfileView aluno={aluno} onAlunoUpdated={setAluno} />
               )}
             </>
           )}

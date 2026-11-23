@@ -5,7 +5,10 @@ module.exports = defineConfig({
   plugins: [react()],
   root: "frontend",
   server: {
-    proxy: { "/api": "http://localhost:3000" }
+    proxy: {
+      "/api": "http://localhost:3000",
+      "/uploads": "http://localhost:3000"
+    }
   },
   build: { outDir: "dist", emptyOutDir: true }
 });
