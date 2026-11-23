@@ -42,4 +42,10 @@ const uploadAnuncio = multer({
   fileFilter
 });
 
-module.exports = { uploadPerfil, uploadAnuncio };
+// Suporte a fotos únicas ("foto") e múltiplas fotos para carrossel ("fotos", até 5 fotos)
+const uploadAnuncioMulti = uploadAnuncio.fields([
+  { name: "foto", maxCount: 1 },
+  { name: "fotos", maxCount: 5 }
+]);
+
+module.exports = { uploadPerfil, uploadAnuncio, uploadAnuncioMulti };

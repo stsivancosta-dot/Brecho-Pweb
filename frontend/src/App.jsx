@@ -95,6 +95,102 @@ function Avatar({ nome, fotoPerfil, size = 48 }) {
   );
 }
 
+/* Componente de Estrelas */
+function StarRating({ value = 0, onChange, readOnly = true }) {
+  return (
+    <div className="stars-row">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          className={`star-icon ${star <= Math.round(value) ? "filled" : ""} ${!readOnly ? "interactive" : ""}`}
+          onClick={() => !readOnly && onChange?.(star)}
+          title={`${star} estrela${star > 1 ? "s" : ""}`}
+        >
+          ★
+        </span>
+      ))}
+      {readOnly && (
+        <span style={{ fontSize: "13px", fontWeight: "600", color: "var(--primary-dark)", marginLeft: "4px" }}>
+          {value > 0 ? Number(value).toFixed(1) : "Sem avaliações"}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* Componente de Carrossel de Fotos do Anúncio */
+function ImageCarousel({ fotos = [], itemNome = "Produto", height = 260 }) {
+  const [index, setIndex] = useState(0);
+  const images = Array.isArray(fotos) && fotos.length > 0 ? fotos : [];
+
+  if (images.length === 0) {
+    return (
+      <div style={{
+        width: "100%", height, borderRadius: "12px",
+        backgroundColor: "#f0f4f2", display: "flex", alignItems: "center", justifyContent: "center",
+        color: "var(--text-muted)", fontSize: "14px"
+      }}>
+        Sem foto
+      </div>
+    );
+  }
+
+  function prev() {
+    setIndex((prevIndex) => (prevIndex === 0 ? images.length - 1 : prevIndex - 1));
+  }
+
+  function next() {
+    setIndex((prevIndex) => (prevIndex === images.length - 1 ? 0 : prevIndex + 1));
+  }
+
+  return (
+    <div>
+      <div className="carousel-wrap" style={{ height }}>
+        <img
+          src={`/uploads/anuncios/${images[index]}`}
+          alt={`${itemNome} (${index + 1})`}
+          className="carousel-slide-img"
+          style={{ height }}
+        />
+
+        {images.length > 1 && (
+          <>
+            <button type="button" className="carousel-nav-btn carousel-nav-prev" onClick={prev}>
+              ‹
+            </button>
+            <button type="button" className="carousel-nav-btn carousel-nav-next" onClick={next}>
+              ›
+            </button>
+            <div className="carousel-indicators">
+              {images.map((_, i) => (
+                <span
+                  key={i}
+                  className={`carousel-dot ${i === index ? "active" : ""}`}
+                  onClick={() => setIndex(i)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <div className="carousel-thumbnails">
+          {images.map((img, i) => (
+            <img
+              key={i}
+              src={`/uploads/anuncios/${img}`}
+              alt={`Miniatura ${i + 1}`}
+              className={`carousel-thumb ${i === index ? "active" : ""}`}
+              onClick={() => setIndex(i)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ==========================================================
    TELA UNIVERSAL DE LOGIN (FIGMA PAGE 1)
    ========================================================== */
@@ -556,25 +652,48 @@ function Catalog({ aluno, isAnunciante, onSelectItem }) {
 }
 
 /* ==========================================================
-   DETALHES DO ITEM & RESERVA (ALUNO INTERESSADO)
+   DETALHES DO ITEM & PEDIDO DE INTERESSE
    ========================================================== */
 function ItemDetail({ item, aluno, onBack, onReserved }) {
+  const [mensagem, setMensagem] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [anuncianteAvaliacoes, setAnuncianteAvaliacoes] = useState({ media: 0, total: 0 });
   const isOwn = item.anunciante?.id === aluno.id;
 
-  async function handleReserve() {
+  useEffect(() => {
+    if (item.anunciante?.id) {
+      api(`/alunos/${item.anunciante.id}/avaliacoes/resumo`)
+        .then(setAnuncianteAvaliacoes)
+        .catch(() => {});
+    }
+  }, [item]);
+
+  async function handleFazerPedido(e) {
+    e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
     try {
-      await api(`/anuncios/${item.id}/reservas`, { method: "POST" });
-      onReserved();
+      await api(`/anuncios/${item.id}/pedidos`, {
+        method: "POST",
+        body: JSON.stringify({ mensagem })
+      });
+      setSuccess("Pedido de interesse enviado ao anunciante com sucesso! O anúncio continua no Brechó e ele analisará os pedidos recebidos.");
+      setTimeout(() => {
+        onReserved();
+      }, 1500);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
   }
+
+  const fotosCarrossel = Array.isArray(item.fotos) && item.fotos.length > 0
+    ? item.fotos
+    : (item.fotoUrl ? [item.fotoUrl] : []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -589,13 +708,7 @@ function ItemDetail({ item, aluno, onBack, onReserved }) {
             <StatusBadge status={item.status} />
           </div>
 
-          {item.fotoUrl && (
-            <img
-              src={`/uploads/anuncios/${item.fotoUrl}`}
-              alt={item.item}
-              className="item-detail-image"
-            />
-          )}
+          <ImageCarousel fotos={fotosCarrossel} itemNome={item.item} height={280} />
 
           <h1 className="page-title" style={{ fontSize: "28px" }}>{item.item}</h1>
           <div className="item-price" style={{ fontSize: "26px" }}>{item.precoExibicao}</div>
@@ -605,10 +718,19 @@ function ItemDetail({ item, aluno, onBack, onReserved }) {
             <p style={{ fontSize: "15px", color: "var(--text-muted)", lineHeight: "1.6" }}>{item.descricao}</p>
           </div>
 
-          <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "16px", display: "flex", justifyContent: "space-between" }}>
-            <div>
-              <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Anunciante</div>
-              <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>{item.anunciante?.nome}</strong>
+          <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <Avatar nome={item.anunciante?.nome} fotoPerfil={item.anunciante?.fotoPerfil} size={42} />
+              <div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Anunciante</div>
+                <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>{item.anunciante?.nome}</strong>
+                <div>
+                  <StarRating value={anuncianteAvaliacoes.media} />
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", marginLeft: "4px" }}>
+                    ({anuncianteAvaliacoes.total})
+                  </span>
+                </div>
+              </div>
             </div>
             <div>
               <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Publicado em</div>
@@ -617,28 +739,41 @@ function ItemDetail({ item, aluno, onBack, onReserved }) {
           </div>
 
           <Message message={error} />
+          <Message message={success} type="success" />
 
-          {item.status === "DISPONIVEL" && !isOwn && (
-            <button className="btn btn-primary" style={{ height: "46px" }} onClick={handleReserve} disabled={loading}>
-              {loading ? "Reservando..." : "Reservar item"}
-            </button>
+          {item.status === "DISPONIVEL" && !isOwn && !success && (
+            <form onSubmit={handleFazerPedido} style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "12px" }}>
+              <div className="form-group">
+                <label className="form-label">Mensagem para o anunciante <span>(opcional)</span></label>
+                <input
+                  type="text"
+                  className="input-control"
+                  placeholder="Ex: Olá, tenho interesse! Posso pegar no intervalo de amanhã."
+                  value={mensagem}
+                  onChange={(e) => setMensagem(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ height: "46px" }} disabled={loading}>
+                {loading ? "Enviando interesse..." : "Fazer pedido de interesse"}
+              </button>
+            </form>
           )}
 
           {isOwn && (
             <div className="alert-banner">
               <div className="alert-title">Seu próprio anúncio</div>
-              <div className="alert-desc">Você não pode reservar itens que você mesmo anunciou.</div>
+              <div className="alert-desc">Você é o anunciante deste item. Acompanhe os pedidos recebidos em Gerenciamento.</div>
             </div>
           )}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div className="side-panel-card support-bg">
-            <div className="side-panel-title">Como funciona a reserva?</div>
+            <div className="side-panel-title">Como funcionam os pedidos?</div>
             <div className="side-panel-desc">
-              1. Você manifesta o interesse clicando em "Reservar item".<br/><br/>
-              2. O anúncio fica reservado exclusivamente para você por até 3 dias.<br/><br/>
-              3. Vocês combinam presencialmente na escola para realizar a entrega e pagamento/troca.
+              1. Vários estudantes podem pedir o mesmo item ao mesmo tempo sem bloqueá-lo.<br/><br/>
+              2. O anúncio não sai do Brechó até que a negociação seja aceita e concluída.<br/><br/>
+              3. O anunciante analisa os pedidos recebidos e escolhe com quem concluir presencialmente na escola.
             </div>
           </div>
         </div>
@@ -666,8 +801,12 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
   };
 
   const [form, setForm] = useState(initial);
-  const [foto, setFoto] = useState(null);
-  const [preview, setPreview] = useState(editing?.fotoUrl ? `/uploads/anuncios/${editing.fotoUrl}` : null);
+  const [fotos, setFotos] = useState([]);
+  const [previews, setPreviews] = useState(
+    Array.isArray(editing?.fotos) && editing.fotos.length > 0
+      ? editing.fotos.map(f => `/uploads/anuncios/${f}`)
+      : (editing?.fotoUrl ? [`/uploads/anuncios/${editing.fotoUrl}`] : [])
+  );
   const [activeCount, setActiveCount] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -683,11 +822,11 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
     setForm(prev => ({ ...prev, [name]: value }));
   }
 
-  function handleFileChange(e) {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFoto(file);
-      setPreview(URL.createObjectURL(file));
+  function handleFilesChange(e) {
+    const fileList = Array.from(e.target.files || []).slice(0, 5);
+    if (fileList.length > 0) {
+      setFotos(fileList);
+      setPreviews(fileList.map(f => URL.createObjectURL(f)));
     }
   }
 
@@ -704,8 +843,10 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
       if (form.preco !== "" && form.preco !== null) {
         formData.append("preco", String(Number(form.preco)));
       }
-      if (foto) {
-        formData.append("foto", foto);
+      if (fotos.length > 0) {
+        fotos.forEach(f => {
+          formData.append("fotos", f);
+        });
       }
 
       if (editing) {
@@ -811,25 +952,35 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Foto do item <span>opcional</span></label>
-            {preview && (
-              <div style={{ marginBottom: "8px" }}>
-                <img
-                  src={preview}
-                  alt="Prévia"
-                  style={{ width: "100%", maxHeight: "180px", objectFit: "cover", borderRadius: "10px", border: "1px solid var(--border-light)" }}
-                />
+            <label className="form-label">Fotos do item <span>(Carrossel de até 5 fotos, a 1ª será a capa)</span></label>
+            {previews.length > 0 && (
+              <div style={{ display: "flex", gap: "8px", overflowX: "auto", marginBottom: "8px" }}>
+                {previews.map((src, i) => (
+                  <div key={i} style={{ position: "relative" }}>
+                    <img
+                      src={src}
+                      alt={`Prévia ${i + 1}`}
+                      style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "8px", border: i === 0 ? "2px solid var(--primary)" : "1px solid var(--border-light)" }}
+                    />
+                    {i === 0 && (
+                      <span style={{ position: "absolute", bottom: "4px", left: "4px", background: "var(--primary)", color: "#fff", fontSize: "10px", padding: "1px 4px", borderRadius: "4px" }}>
+                        Capa
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
             <input
               type="file"
+              multiple
               accept="image/png, image/jpeg, image/webp"
-              onChange={handleFileChange}
+              onChange={handleFilesChange}
               className="input-control"
               style={{ padding: "8px" }}
             />
             <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-              Aceita imagens JPG, PNG ou WebP de até 5MB.
+              Selecione de 1 a 5 fotos. A primeira foto adicionada será a capa no catálogo e todas poderão ser navegadas no carrossel.
             </span>
           </div>
 
@@ -877,10 +1028,10 @@ function AnnouncementForm({ editing, aluno, onDone, onCancel }) {
 }
 
 /* ==========================================================
-   GERENCIAMENTO DE RESERVAS - ANUNCIANTE (FIGMA PAGE 3)
+   GERENCIAMENTO DE PEDIDOS DE INTERESSE - ANUNCIANTE
    ========================================================== */
 function SellerReservations({ onNavigate }) {
-  const [reservas, setReservas] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [tab, setTab] = useState("PENDENTES");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -889,8 +1040,8 @@ function SellerReservations({ onNavigate }) {
   async function loadData() {
     setLoading(true);
     try {
-      const res = await api("/me/reservas-recebidas");
-      setReservas(res.dados || []);
+      const res = await api("/me/pedidos-recebidos");
+      setPedidos(res.dados || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -902,41 +1053,56 @@ function SellerReservations({ onNavigate }) {
     loadData();
   }, []);
 
-  async function handleConfirm(id) {
-    if (!confirm("Confirmar que a entrega/negociação foi realizada?")) return;
+  async function handleAceitar(id) {
     setError("");
     setSuccess("");
     try {
-      await api(`/reservas/${id}/confirmacao`, { method: "PATCH" });
-      setSuccess("Negociação confirmada com sucesso!");
+      await api(`/pedidos/${id}/aceitar`, { method: "PATCH" });
+      setSuccess("Pedido aceito! Combine a entrega presencialmente com o aluno.");
       loadData();
     } catch (err) {
       setError(err.message);
     }
   }
 
-  async function handleCancel(id) {
-    if (!confirm("Cancelar esta reserva e liberar o item novamente?")) return;
+  async function handleRecusar(id) {
+    if (!confirm("Recusar este pedido de interesse?")) return;
     setError("");
     setSuccess("");
     try {
-      await api(`/reservas/${id}/cancelamento`, { method: "PATCH" });
-      setSuccess("Reserva cancelada. O anúncio voltou a ficar disponível.");
+      await api(`/pedidos/${id}/recusar`, { method: "PATCH" });
+      setSuccess("Pedido recusado.");
       loadData();
     } catch (err) {
       setError(err.message);
     }
   }
 
-  const ativas = reservas.filter(r => r.status === "ATIVA");
-  const concluidas = reservas.filter(r => r.status === "CONFIRMADA");
+  async function handleConcluir(id) {
+    if (!confirm("Confirmar que a entrega e negociação foram concluídas com sucesso?")) return;
+    setError("");
+    setSuccess("");
+    try {
+      await api(`/pedidos/${id}/concluir`, { method: "PATCH" });
+      setSuccess("Negociação concluída com sucesso! O anúncio foi finalizado.");
+      loadData();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  const pendentes = pedidos.filter(p => p.status === "PENDENTE" || p.status === "ACEITO");
+  const concluidos = pedidos.filter(p => p.status === "CONCLUIDO");
+  const recusados = pedidos.filter(p => p.status === "RECUSADO" || p.status === "CANCELADO");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Gerenciamento</h1>
-          <p className="page-subtitle">Acompanhe os pedidos e confirme as negociações dos seus anúncios.</p>
+          <h1 className="page-title">Gerenciamento de pedidos</h1>
+          <p className="page-subtitle">
+            Organizados do mais antigo para o mais recente — priorizando quem demonstrou interesse primeiro.
+          </p>
         </div>
         <button className="btn btn-secondary" onClick={() => onNavigate("historico")}>
           Ver histórico
@@ -945,10 +1111,13 @@ function SellerReservations({ onNavigate }) {
 
       <div className="tabs-filter">
         <button className={`tab-btn ${tab === "PENDENTES" ? "active" : ""}`} onClick={() => setTab("PENDENTES")}>
-          Pendentes · {ativas.length}
+          Interesses em aberto · {pendentes.length}
         </button>
         <button className={`tab-btn ${tab === "CONCLUIDAS" ? "active" : ""}`} onClick={() => setTab("CONCLUIDAS")}>
-          Concluídos · {concluidas.length}
+          Concluídos · {concluidos.length}
+        </button>
+        <button className={`tab-btn ${tab === "RECUSADOS" ? "active" : ""}`} onClick={() => setTab("RECUSADOS")}>
+          Recusados/Cancelados · {recusados.length}
         </button>
       </div>
 
@@ -956,78 +1125,95 @@ function SellerReservations({ onNavigate }) {
       <Message message={success} type="success" />
 
       {loading ? (
-        <p style={{ color: "var(--text-muted)" }}>Carregando reservas...</p>
-      ) : tab === "PENDENTES" && ativas.length === 0 ? (
+        <p style={{ color: "var(--text-muted)" }}>Carregando pedidos...</p>
+      ) : tab === "PENDENTES" && pendentes.length === 0 ? (
         <div className="alert-banner">
-          <div className="alert-title">Nenhuma reserva pendente</div>
-          <div className="alert-desc">Nenhum aluno solicitou reserva para seus anúncios no momento.</div>
+          <div className="alert-title">Nenhum pedido de interesse pendente</div>
+          <div className="alert-desc">Seus anúncios estão visíveis no Brechó prontos para receber novos pedidos simultâneos.</div>
         </div>
-      ) : tab === "CONCLUIDAS" && concluidas.length === 0 ? (
+      ) : tab === "CONCLUIDAS" && concluidos.length === 0 ? (
         <div className="alert-banner">
           <div className="alert-title">Nenhuma negociação concluída ainda</div>
-          <div className="alert-desc">As reservas confirmadas por você aparecerão aqui e no histórico.</div>
+          <div className="alert-desc">Ao concluir a entrega com um aluno, a negociação ficará arquivada aqui.</div>
+        </div>
+      ) : tab === "RECUSADOS" && recusados.length === 0 ? (
+        <div className="alert-banner">
+          <div className="alert-title">Nenhum pedido recusado</div>
+          <div className="alert-desc">Nenhum pedido foi recusado ou cancelado até o momento.</div>
         </div>
       ) : (
         <div className="reservation-manage-layout">
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            {(tab === "PENDENTES" ? ativas : concluidas).map((res) => (
-              <div key={res.id} className="reservation-order-card">
+            {(tab === "PENDENTES" ? pendentes : (tab === "CONCLUIDAS" ? concluidos : recusados)).map((p, idx) => (
+              <div key={p.id} className="reservation-order-card">
                 <div className="res-header-tag">
-                  <span>RESERVA RECEBIDA · {formatDate(res.reservadoEm)}</span>
-                  <StatusBadge status={res.status} />
+                  <span>
+                    PEDIDO #{idx + 1} · {formatDateTime(p.criadoEm)}
+                  </span>
+                  <StatusBadge status={p.status} />
                 </div>
 
                 <div>
                   <span className="item-category-tag">
-                    {formatLabel(res.anuncio?.categoria)} · {formatLabel(res.anuncio?.estadoConservacao)}
+                    {formatLabel(p.anuncio?.categoria)} · {formatLabel(p.anuncio?.estadoConservacao)}
                   </span>
                   <h2 style={{ fontSize: "22px", fontWeight: "700", color: "var(--primary-dark)", marginTop: "4px" }}>
-                    {res.anuncio?.item}
+                    {p.anuncio?.item}
                   </h2>
-                  <div className="item-price" style={{ marginTop: "6px" }}>{res.anuncio?.precoExibicao}</div>
+                  <div className="item-price" style={{ marginTop: "6px" }}>{p.anuncio?.precoExibicao}</div>
                 </div>
+
+                {p.mensagem && (
+                  <div style={{ background: "var(--bg-page)", padding: "12px 16px", borderRadius: "8px", fontSize: "14px", fontStyle: "italic", color: "var(--primary-dark)" }}>
+                    "{p.mensagem}"
+                  </div>
+                )}
 
                 <div className="res-student-info">
-                  <div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Aluno interessado</div>
-                    <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>
-                      {res.interessado?.nome || "Aluno"}
-                    </strong>
-                    <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>{res.interessado?.email}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <Avatar nome={p.interessado?.nome} fotoPerfil={p.interessado?.fotoPerfil} size={42} />
+                    <div>
+                      <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Estudante interessado</div>
+                      <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>
+                        {p.interessado?.nome || "Aluno"}
+                      </strong>
+                      <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>{p.interessado?.email}</div>
+                    </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Solicitada em</div>
+                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>Demonstrou interesse em</div>
                     <strong style={{ fontSize: "14px", color: "var(--primary-dark)" }}>
-                      {formatDateTime(res.reservadoEm)}
+                      {formatDateTime(p.criadoEm)}
                     </strong>
                   </div>
                 </div>
 
-                {res.status === "ATIVA" && (
-                  <>
+                {p.status === "PENDENTE" && (
+                  <div style={{ display: "flex", gap: "12px" }}>
+                    <button className="btn btn-primary" onClick={() => handleAceitar(p.id)}>
+                      Aceitar interesse
+                    </button>
+                    <button className="btn btn-outline-danger" onClick={() => handleRecusar(p.id)}>
+                      Recusar pedido
+                    </button>
+                  </div>
+                )}
+
+                {p.status === "ACEITO" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     <div className="alert-banner">
-                      <div className="alert-title">Confirme até {formatDateTime(res.expiraEm)}</div>
-                      <div className="alert-desc">
-                        Sem sua confirmação em 3 dias, a reserva expira automaticamente e o item volta a ficar Disponível.
-                      </div>
+                      <div className="alert-title">Interesse aceito!</div>
+                      <div className="alert-desc">Combine presencialmente na escola. Quando entregar o item, clique em concluir negociação.</div>
                     </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                      <strong style={{ fontSize: "14px", color: "var(--primary-dark)" }}>A negociação já aconteceu?</strong>
-                      <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                        Ao confirmar, o anúncio passa para Concluído e permanece no histórico, somente para consulta. Essa etapa não pode ser desfeita.
-                      </p>
-                    </div>
-
                     <div style={{ display: "flex", gap: "12px" }}>
-                      <button className="btn btn-primary" onClick={() => handleConfirm(res.id)}>
-                        Confirmar negociação
+                      <button className="btn btn-primary" onClick={() => handleConcluir(p.id)}>
+                        Concluir negociação (Item entregue)
                       </button>
-                      <button className="btn btn-outline-danger" onClick={() => handleCancel(res.id)}>
-                        Cancelar reserva
+                      <button className="btn btn-outline-danger" onClick={() => handleRecusar(p.id)}>
+                        Desistir / Recusar
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             ))}
@@ -1035,29 +1221,22 @@ function SellerReservations({ onNavigate }) {
 
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div className="side-panel-card support-bg">
-              <div className="side-panel-title">Uma reserva por item.</div>
+              <div className="side-panel-title">Critérios do anunciante</div>
               <div className="side-panel-desc">
-                Enquanto este item está reservado, ele não aceita novas reservas de outros estudantes.
+                Os pedidos são listados em ordem cronológica (quem pediu primeiro fica no topo). Você tem total liberdade para escolher qual pedido aceitar com base nos seus critérios.
               </div>
             </div>
 
             <div className="side-panel-card">
-              <div className="side-panel-title">O caminho do anúncio</div>
+              <div className="side-panel-title">Múltiplos pedidos simultâneos</div>
               <div className="side-panel-desc" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <div>
-                  <strong>Disponível</strong><br/>
-                  O item pode receber uma reserva.
+                  <strong>Não bloqueia o anúncio:</strong><br/>
+                  Receber um pedido não fecha o anúncio para outros interessados.
                 </div>
                 <div>
-                  <strong>Reservado</strong><br/>
-                  Você tem 3 dias para confirmar.
-                </div>
-                <div>
-                  <strong>Concluído</strong><br/>
-                  Negociação finalizada, só leitura.
-                </div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px" }}>
-                  Se cancelar a reserva, o item volta a Disponível.
+                  <strong>Conclusão da entrega:</strong><br/>
+                  Ao confirmar a entrega, o item é concluído e os outros pedidos pendentes são encerrados automaticamente.
                 </div>
               </div>
             </div>
@@ -1078,6 +1257,12 @@ function HistoryView({ aluno, onNavigate }) {
   const [error, setError] = useState("");
   const [filterCat, setFilterCat] = useState("TODOS");
 
+  // Formulário de avaliação para quando o aluno foi o comprador
+  const [estrelas, setEstrelas] = useState(5);
+  const [comentario, setComentario] = useState("");
+  const [enviandoReview, setEnviandoReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState("");
+
   useEffect(() => {
     setLoading(true);
     api("/me/negociacoes")
@@ -1089,6 +1274,31 @@ function HistoryView({ aluno, onNavigate }) {
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleEnviarAvaliacao(e) {
+    e.preventDefault();
+    if (!selected) return;
+    setEnviandoReview(true);
+    setReviewSuccess("");
+    setError("");
+    try {
+      await api("/avaliacoes", {
+        method: "POST",
+        body: JSON.stringify({
+          alunoId: selected.anunciante?.id,
+          anuncioId: selected.id,
+          estrelas,
+          comentario
+        })
+      });
+      setReviewSuccess("Avaliação enviada com sucesso! Ela ficará visível no perfil do anunciante com sua foto.");
+      setComentario("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEnviandoReview(false);
+    }
+  }
 
   const filtered = useMemo(() => {
     if (filterCat === "TODOS") return items;
@@ -1216,6 +1426,44 @@ function HistoryView({ aluno, onNavigate }) {
                   Este anúncio não pode ser editado, removido ou voltar a Disponível. Ele permanece no histórico e não conta no limite de 5 anúncios ativos.
                 </div>
               </div>
+
+              {/* Formulário para avaliar o anunciante se este estudante foi o comprador */}
+              {selected.papel === "INTERESSADO" && selected.anunciante?.id && (
+                <div className="form-card" style={{ marginTop: "16px", padding: "20px" }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary-dark)" }}>
+                    Avaliar o anunciante ({selected.anunciante.nome})
+                  </h3>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "2px" }}>
+                    Compartilhe sua experiência sobre a entrega presencial do item.
+                  </p>
+
+                  <Message message={reviewSuccess} type="success" />
+
+                  {!reviewSuccess && (
+                    <form onSubmit={handleEnviarAvaliacao} style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "12px" }}>
+                      <div>
+                        <label className="form-label" style={{ marginBottom: "4px", display: "block" }}>Nota em estrelas:</label>
+                        <StarRating value={estrelas} onChange={setEstrelas} readOnly={false} />
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Comentário <span>(opcional)</span></label>
+                        <textarea
+                          className="input-control"
+                          rows={3}
+                          placeholder="Ex: Entrega pontual, produto em perfeito estado conforme o anúncio."
+                          value={comentario}
+                          onChange={(e) => setComentario(e.target.value)}
+                        />
+                      </div>
+
+                      <button type="submit" className="btn btn-primary" style={{ alignSelf: "flex-start", fontSize: "13px" }} disabled={enviandoReview}>
+                        {enviandoReview ? "Enviando avaliação..." : "Publicar avaliação"}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1228,32 +1476,32 @@ function HistoryView({ aluno, onNavigate }) {
    ALUNO INTERESSADO - HOME / MENU (FIGMA PAGE 4)
    ========================================================== */
 function BuyerHome({ aluno, onNavigate }) {
-  const [minhasReservas, setMinhasReservas] = useState([]);
+  const [meusPedidos, setMeusPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api("/me/reservas")
-      .then(res => setMinhasReservas(res.dados || []))
+    api("/me/pedidos")
+      .then(res => setMeusPedidos(res.dados || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const ativas = minhasReservas.filter(r => r.status === "ATIVA");
-  const concluidas = minhasReservas.filter(r => r.status === "CONFIRMADA");
+  const emAberto = meusPedidos.filter(p => p.status === "PENDENTE" || p.status === "ACEITO");
+  const concluidos = meusPedidos.filter(p => p.status === "CONCLUIDO");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       <div className="page-header">
         <div>
           <h1 className="page-title">Olá, {aluno.nome}!</h1>
-          <p className="page-subtitle">Encontre o que precisa e acompanhe suas negociações em um só lugar.</p>
+          <p className="page-subtitle">Encontre o que precisa e acompanhe seus pedidos de interesse em um só lugar.</p>
         </div>
       </div>
 
       <div className="side-panel-card support-bg" style={{ padding: "28px", display: "flex", flexDirection: "column", gap: "16px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: "700", color: "var(--primary-dark)" }}>Seu próximo item pode estar aqui.</h2>
         <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-          Livros, uniformes e materiais de outros estudantes, prontos para um novo uso.
+          Livros, uniformes e materiais de outros estudantes, prontos para um novo uso. Múltiplos pedidos podem ser feitos ao mesmo tempo.
         </p>
         <div>
           <button className="btn btn-primary" onClick={() => onNavigate("brecho")}>
@@ -1263,52 +1511,52 @@ function BuyerHome({ aluno, onNavigate }) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary-dark)" }}>Minhas negociações</h2>
+        <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary-dark)" }}>Meus pedidos de interesse</h2>
         <button
           className="btn btn-secondary"
           style={{ border: "none", color: "var(--primary)", fontWeight: "600" }}
           onClick={() => onNavigate("minhas-negociacoes")}
         >
-          Ver minhas negociações →
+          Ver todos os pedidos →
         </button>
       </div>
 
       <div className="metrics-row" style={{ gridTemplateColumns: "1fr 1fr" }}>
         <div className="metric-card">
           <div className="metric-card-header">
-            <span className="metric-number">{ativas.length}</span>
-            <span className="metric-label">Reserva ativa</span>
-            <StatusBadge status="RESERVADO" />
+            <span className="metric-number">{emAberto.length}</span>
+            <span className="metric-label">Pedidos em aberto</span>
+            <StatusBadge status="PENDENTE" />
           </div>
-          {ativas.length > 0 ? (
+          {emAberto.length > 0 ? (
             <div style={{ marginTop: "8px" }}>
-              <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>{ativas[0].anuncio?.item}</strong>
+              <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>{emAberto[0].anuncio?.item}</strong>
               <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                {ativas[0].anuncio?.autor?.nome} · {ativas[0].anuncio?.precoExibicao}
+                Anunciante: {emAberto[0].anuncio?.anunciante?.nome} · {emAberto[0].anuncio?.precoExibicao}
               </div>
               <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                Confirmação até {formatDateTime(ativas[0].expiraEm)}
+                Enviado em {formatDateTime(emAberto[0].criadoEm)}
               </div>
             </div>
           ) : (
-            <div className="metric-sub">Nenhuma reserva ativa no momento.</div>
+            <div className="metric-sub">Nenhum pedido em aberto no momento.</div>
           )}
         </div>
 
         <div className="metric-card">
           <div className="metric-card-header">
-            <span className="metric-number">{concluidas.length}</span>
-            <span className="metric-label">Negociação concluída</span>
+            <span className="metric-number">{concluidos.length}</span>
+            <span className="metric-label">Negociações concluídas</span>
             <StatusBadge status="CONCLUIDO" />
           </div>
-          {concluidas.length > 0 ? (
+          {concluidos.length > 0 ? (
             <div style={{ marginTop: "8px" }}>
-              <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>{concluidas[0].anuncio?.item}</strong>
+              <strong style={{ fontSize: "15px", color: "var(--primary-dark)" }}>{concluidos[0].anuncio?.item}</strong>
               <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                {concluidas[0].anuncio?.autor?.nome} · {concluidas[0].anuncio?.precoExibicao}
+                Anunciante: {concluidos[0].anuncio?.anunciante?.nome} · {concluidos[0].anuncio?.precoExibicao}
               </div>
               <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                Concluído em {formatDate(concluidas[0].confirmadoEm)}
+                Concluído em {formatDate(concluidos[0].concluidoEm || concluidos[0].atualizadoEm)}
               </div>
             </div>
           ) : (
@@ -1318,10 +1566,9 @@ function BuyerHome({ aluno, onNavigate }) {
       </div>
 
       <div className="side-panel-card">
-        <div className="side-panel-title">A negociação acontece pessoalmente.</div>
+        <div className="side-panel-title">Como funciona a negociação?</div>
         <div className="side-panel-desc">
-          A reserva sinaliza seu interesse. Converse com o anunciante presencialmente para combinar a negociação.<br/>
-          Sem confirmação do anunciante em 3 dias, a reserva expira automaticamente e o item volta a Disponível.
+          Ao demonstrar interesse, seu pedido é enviado ao anunciante sem bloquear o anúncio para outros colegas. Ele analisa os pedidos e decide com quem negociar presencialmente no colégio.
         </div>
       </div>
     </div>
@@ -1329,10 +1576,10 @@ function BuyerHome({ aluno, onNavigate }) {
 }
 
 /* ==========================================================
-   ALUNO INTERESSADO - MINHAS NEGOCIAÇÕES (FIGMA PAGE 5)
+   ALUNO INTERESSADO - MEUS PEDIDOS DE INTERESSE
    ========================================================== */
 function BuyerNegotiations() {
-  const [reservas, setReservas] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -1341,8 +1588,8 @@ function BuyerNegotiations() {
 
   function loadData() {
     setLoading(true);
-    api("/me/reservas")
-      .then(res => setReservas(res.dados || []))
+    api("/me/pedidos")
+      .then(res => setPedidos(res.dados || []))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }
@@ -1351,28 +1598,40 @@ function BuyerNegotiations() {
     loadData();
   }, []);
 
-  async function handleCancelReservation(reservaId) {
-    if (!confirm("Deseja cancelar esta reserva? O item voltará a ficar disponível para outros alunos.")) return;
+  async function handleCancelarPedido(id) {
+    if (!confirm("Deseja cancelar seu pedido de interesse para este anúncio?")) return;
     setError("");
     setSuccess("");
     try {
-      await api(`/reservas/${reservaId}/cancelamento`, { method: "PATCH" });
-      setSuccess("Reserva cancelada. O item voltou a Disponível.");
+      await api(`/pedidos/${id}/cancelar`, { method: "PATCH" });
+      setSuccess("Pedido de interesse cancelado com sucesso.");
       loadData();
     } catch (err) {
       setError(err.message);
     }
   }
 
-  const ativas = reservas.filter(r => r.status === "ATIVA");
-  const historico = reservas.filter(r => r.status !== "ATIVA");
+  const emAberto = pedidos.filter(p => p.status === "PENDENTE" || p.status === "ACEITO");
+  const concluidosEOutros = pedidos.filter(p => p.status !== "PENDENTE" && p.status !== "ACEITO");
+
+  const filtered = useMemo(() => {
+    return pedidos.filter(p => {
+      if (statusFilter !== "TODOS" && p.status !== statusFilter) return false;
+      if (search) {
+        const itemMatch = p.anuncio?.item?.toLowerCase().includes(search.toLowerCase());
+        const autorMatch = p.anuncio?.anunciante?.nome?.toLowerCase().includes(search.toLowerCase());
+        if (!itemMatch && !autorMatch) return false;
+      }
+      return true;
+    });
+  }, [pedidos, statusFilter, search]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Minhas negociações</h1>
-          <p className="page-subtitle">Sua reserva ativa e o histórico de negociações, juntos nesta página.</p>
+          <h1 className="page-title">Meus pedidos de interesse</h1>
+          <p className="page-subtitle">Acompanhe seus pedidos em aberto e o histórico das suas negociações.</p>
         </div>
       </div>
 
@@ -1387,9 +1646,11 @@ function BuyerNegotiations() {
         </div>
         <select className="select-control" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="TODOS">Todos os estados</option>
-          <option value="ATIVA">Reservado (Ativa)</option>
-          <option value="CONFIRMADA">Concluído</option>
-          <option value="CANCELADA">Cancelada / Expirada</option>
+          <option value="PENDENTE">Aguardando análise</option>
+          <option value="ACEITO">Interesse aceito</option>
+          <option value="CONCLUIDO">Concluído</option>
+          <option value="RECUSADO">Recusado</option>
+          <option value="CANCELADO">Cancelado</option>
         </select>
       </div>
 
@@ -1399,87 +1660,90 @@ function BuyerNegotiations() {
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary-dark)" }}>Em andamento</h2>
-          <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>{ativas.length} reserva ativa</span>
+          <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>{emAberto.length} pedido(s) em aberto</span>
         </div>
 
-        {ativas.length === 0 ? (
+        {emAberto.length === 0 ? (
           <div className="alert-banner">
-            <div className="alert-title">Nenhuma reserva em andamento</div>
-            <div className="alert-desc">Explore o Brechó para encontrar itens escolares e fazer uma reserva.</div>
+            <div className="alert-title">Nenhum pedido em andamento</div>
+            <div className="alert-desc">Explore o Brechó para encontrar itens escolares e demonstrar interesse.</div>
           </div>
         ) : (
-          ativas.map(res => (
-            <div key={res.id} className="form-card" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "24px" }}>
+          emAberto.map(p => (
+            <div key={p.id} className="form-card" style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "24px" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <h3 style={{ fontSize: "20px", fontWeight: "700", color: "var(--primary-dark)" }}>
-                    {res.anuncio?.item}
+                    {p.anuncio?.item}
                   </h3>
-                  <StatusBadge status="RESERVADO" />
+                  <StatusBadge status={p.status} />
                 </div>
                 <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                  {formatLabel(res.anuncio?.categoria)} · {formatLabel(res.anuncio?.estadoConservacao)}
+                  {formatLabel(p.anuncio?.categoria)} · {formatLabel(p.anuncio?.estadoConservacao)}
                 </div>
                 <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                  Anunciado por <strong>{res.anuncio?.autor?.nome}</strong>
+                  Anunciado por <strong>{p.anuncio?.anunciante?.nome}</strong>
                 </div>
-                <div className="item-price" style={{ marginTop: "8px" }}>{res.anuncio?.precoExibicao}</div>
+                <div className="item-price" style={{ marginTop: "8px" }}>{p.anuncio?.precoExibicao}</div>
+
+                {p.mensagem && (
+                  <div style={{ fontSize: "13px", color: "var(--text-muted)", fontStyle: "italic", background: "var(--bg-page)", padding: "8px 12px", borderRadius: "6px" }}>
+                    Sua mensagem: "{p.mensagem}"
+                  </div>
+                )}
 
                 <div style={{ marginTop: "8px" }}>
                   <button
                     className="btn btn-outline-danger"
                     style={{ fontSize: "13px", padding: "7px 14px" }}
-                    onClick={() => handleCancelReservation(res.id)}
+                    onClick={() => handleCancelarPedido(p.id)}
                   >
-                    Cancelar reserva
+                    Desistir / Cancelar pedido
                   </button>
                 </div>
               </div>
 
               <div className="side-panel-card support-bg" style={{ padding: "16px" }}>
-                <div className="side-panel-title">Aguardando confirmação de {res.anuncio?.autor?.nome}</div>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                  Reservado em {formatDateTime(res.reservadoEm)}
-                </div>
-                <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--primary-dark)", marginTop: "8px" }}>
-                  Confirmação até {formatDateTime(res.expiraEm)}
+                <div className="side-panel-title">
+                  {p.status === "ACEITO" ? "Interesse aceito pelo anunciante!" : `Aguardando análise de ${p.anuncio?.anunciante?.nome}`}
                 </div>
                 <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                  O anunciante tem 3 dias após a reserva para confirmar a negociação.
+                  Pedido enviado em {formatDateTime(p.criadoEm)}
+                </div>
+                <div style={{ fontSize: "13px", color: "var(--primary-dark)", marginTop: "8px", lineHeight: "1.4" }}>
+                  {p.status === "ACEITO"
+                    ? "O anunciante aceitou seu pedido! Combine presencialmente no colégio para concluir a entrega."
+                    : "O anunciante analisa quem pediu primeiro e outros critérios para escolher com quem negociar."}
                 </div>
               </div>
             </div>
           ))
         )}
-
-        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-          Sem confirmação em 3 dias, a reserva expira automaticamente e o item volta a Disponível. Enquanto estiver Reservado, não aceita novas reservas.
-        </div>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary-dark)" }}>Histórico</h2>
-          <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>{historico.length} negociação · somente leitura</span>
+          <h2 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary-dark)" }}>Histórico de pedidos</h2>
+          <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>{concluidosEOutros.length} negociação(ões) · somente leitura</span>
         </div>
 
-        {historico.length === 0 ? (
-          <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>Nenhuma negociação anterior no histórico.</p>
+        {concluidosEOutros.length === 0 ? (
+          <p style={{ fontSize: "14px", color: "var(--text-muted)" }}>Nenhum pedido finalizado anteriormente.</p>
         ) : (
-          historico.map(res => (
-            <div key={res.id} className="item-row-card">
+          concluidosEOutros.map(p => (
+            <div key={p.id} className="item-row-card">
               <div>
-                <strong style={{ fontSize: "16px", color: "var(--primary-dark)" }}>{res.anuncio?.item}</strong>
+                <strong style={{ fontSize: "16px", color: "var(--primary-dark)" }}>{p.anuncio?.item}</strong>
                 <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                  {formatLabel(res.anuncio?.categoria)} · {formatLabel(res.anuncio?.estadoConservacao)} · Anunciante: {res.anuncio?.autor?.nome}
+                  {formatLabel(p.anuncio?.categoria)} · Anunciante: {p.anuncio?.anunciante?.nome}
                 </div>
               </div>
               <div style={{ textAlign: "right", display: "flex", alignItems: "center", gap: "16px" }}>
-                <span className="item-price" style={{ fontSize: "16px" }}>{res.anuncio?.precoExibicao}</span>
+                <span className="item-price" style={{ fontSize: "16px" }}>{p.anuncio?.precoExibicao}</span>
                 <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                  {res.status === "CONFIRMADA" ? `Concluído em ${formatDate(res.confirmadoEm)}` : "Encerrado"}
+                  {p.status === "CONCLUIDO" ? `Concluído em ${formatDate(p.concluidoEm || p.atualizadoEm)}` : p.status}
                 </span>
-                <StatusBadge status={res.status} />
+                <StatusBadge status={p.status} />
               </div>
             </div>
           ))
@@ -1489,7 +1753,7 @@ function BuyerNegotiations() {
       <div className="side-panel-card support-bg" style={{ padding: "20px" }}>
         <div className="side-panel-title">Negociação presencial entre estudantes</div>
         <div className="side-panel-desc">
-          A reserva sinaliza seu interesse. Combine pessoalmente com o anunciante os próximos passos da negociação.
+          O pedido de interesse sinaliza sua intenção. Combine pessoalmente com o colega anunciante os detalhes da entrega.
         </div>
       </div>
     </div>
@@ -1497,21 +1761,29 @@ function BuyerNegotiations() {
 }
 
 /* ==========================================================
-   PERFIL DO ESTUDANTE (INFORMAÇÕES E FOTO DE PERFIL)
+   PERFIL DO ESTUDANTE (INFORMAÇÕES, AVALIAÇÕES E COMENTÁRIOS)
    ========================================================== */
 function ProfileView({ aluno, onAlunoUpdated }) {
   const [perfil, setPerfil] = useState(null);
+  const [avaliacoes, setAvaliacoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [novaNota, setNovaNota] = useState(5);
+  const [novoComentario, setNovoComentario] = useState("");
+  const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
   const fileInputRef = useRef(null);
 
   async function loadProfile() {
     setLoading(true);
     try {
-      const data = await api("/me/perfil");
+      const [data, reviewsRes] = await Promise.all([
+        api("/me/perfil"),
+        api(`/alunos/${aluno.id}/avaliacoes`).catch(() => ({ dados: [] }))
+      ]);
       setPerfil(data);
+      setAvaliacoes(reviewsRes.dados || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1521,7 +1793,7 @@ function ProfileView({ aluno, onAlunoUpdated }) {
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [aluno.id]);
 
   async function handlePhotoSelected(e) {
     const file = e.target.files?.[0];
@@ -1551,12 +1823,24 @@ function ProfileView({ aluno, onAlunoUpdated }) {
     }
   }
 
+  async function handleToggleFixar(avaliacaoId) {
+    setError("");
+    setSuccess("");
+    try {
+      await api(`/avaliacoes/${avaliacaoId}/fixar`, { method: "PATCH" });
+      setSuccess("Destaque atualizado com sucesso!");
+      loadProfile();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       <div className="page-header">
         <div>
           <h1 className="page-title">Meu perfil</h1>
-          <p className="page-subtitle">Visualize suas informações acadêmicas e gerencie sua foto de perfil.</p>
+          <p className="page-subtitle">Visualize suas estatísticas acadêmicas, avaliações da comunidade e gerencie sua foto.</p>
         </div>
       </div>
 
@@ -1567,94 +1851,166 @@ function ProfileView({ aluno, onAlunoUpdated }) {
         <p style={{ color: "var(--text-muted)" }}>Carregando perfil...</p>
       ) : (
         <div className="form-layout">
-          <div className="form-card" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              <Avatar nome={aluno.nome} fotoPerfil={aluno.fotoPerfil} size={84} />
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <h2 style={{ fontSize: "22px", fontWeight: "700", color: "var(--primary-dark)" }}>
-                  {aluno.nome}
-                </h2>
-                <div style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-                  Conta institucional do Brechó Estudantil
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div className="form-card" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                <Avatar nome={aluno.nome} fotoPerfil={aluno.fotoPerfil} size={84} />
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <h2 style={{ fontSize: "22px", fontWeight: "700", color: "var(--primary-dark)" }}>
+                    {aluno.nome}
+                  </h2>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <StarRating value={perfil?.mediaAvaliacoes || 0} />
+                    <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                      ({perfil?.totalAvaliacoes || 0} avaliação{perfil?.totalAvaliacoes !== 1 ? "ões" : ""})
+                    </span>
+                  </div>
+                  <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/png, image/jpeg, image/webp"
+                      style={{ display: "none" }}
+                      onChange={handlePhotoSelected}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ fontSize: "13px", padding: "6px 14px" }}
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? "Enviando..." : "Alterar foto de perfil"}
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/png, image/jpeg, image/webp"
-                    style={{ display: "none" }}
-                    onChange={handlePhotoSelected}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    style={{ fontSize: "13px", padding: "6px 14px" }}
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                  >
-                    {uploading ? "Enviando..." : "Alterar foto de perfil"}
-                  </button>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>NOME COMPLETO</span>
+                  <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "600", marginTop: "2px" }}>
+                    {aluno.nome}
+                  </p>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>E-MAIL ESTUDANTIL</span>
+                  <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "600", marginTop: "2px" }}>
+                    {aluno.email}
+                  </p>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>DATA DE CADASTRO</span>
+                  <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "500", marginTop: "2px" }}>
+                    {formatDate(aluno.criadoEm || perfil?.criadoEm)}
+                  </p>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>STATUS DA CONTA</span>
+                  <p style={{ fontSize: "15px", color: "var(--primary)", fontWeight: "600", marginTop: "2px" }}>
+                    Estudante ativo
+                  </p>
                 </div>
               </div>
-            </div>
 
-            <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div>
-                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>NOME COMPLETO</span>
-                <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "600", marginTop: "2px" }}>
-                  {aluno.nome}
-                </p>
-              </div>
-
-              <div>
-                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>E-MAIL ESTUDANTIL</span>
-                <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "600", marginTop: "2px" }}>
-                  {aluno.email}
-                </p>
-              </div>
-
-              <div>
-                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>DATA DE CADASTRO</span>
-                <p style={{ fontSize: "15px", color: "var(--primary-dark)", fontWeight: "500", marginTop: "2px" }}>
-                  {formatDate(aluno.criadoEm || perfil?.criadoEm)}
-                </p>
-              </div>
-
-              <div>
-                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>STATUS DA CONTA</span>
-                <p style={{ fontSize: "15px", color: "var(--primary)", fontWeight: "600", marginTop: "2px" }}>
-                  Estudante ativo
+              <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "16px" }}>
+                <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>SUA PRIVACIDADE</span>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.5" }}>
+                  Seu e-mail é utilizado apenas para autenticação e registro. Ele não é compartilhado com terceiros e todas as negociações do Brechó ocorrem presencialmente no ambiente escolar.
                 </p>
               </div>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "16px" }}>
-              <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: "600" }}>SUA PRIVACIDADE</span>
-              <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.5" }}>
-                Seu e-mail é utilizado apenas para autenticação e acompanhamento de negociações reservadas por você. O contato e a entrega dos itens ocorrem sempre de forma presencial no ambiente escolar.
-              </p>
+            {/* Seção de Comentários e Avaliações Recebidos */}
+            <div className="form-card" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary-dark)" }}>
+                  Avaliações e comentários recebidos
+                </h3>
+                <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
+                  {avaliacoes.length} comentário(s)
+                </span>
+              </div>
+
+              {avaliacoes.length === 0 ? (
+                <div className="alert-banner">
+                  <div className="alert-title">Nenhuma avaliação ainda</div>
+                  <div className="alert-desc">Ao concluir negociações com outros estudantes, as avaliações com fotos e comentários aparecerão aqui.</div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {avaliacoes.map((av) => (
+                    <div key={av.id} className={`review-card ${av.fixado ? "pinned" : ""}`}>
+                      <div className="review-header">
+                        <div className="review-author-wrap">
+                          <Avatar nome={av.autor?.nome} fotoPerfil={av.autor?.fotoPerfil} size={36} />
+                          <div>
+                            <strong style={{ fontSize: "14px", color: "var(--primary-dark)" }}>{av.autor?.nome}</strong>
+                            <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{formatDate(av.criadoEm)}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <StarRating value={av.estrelas} readOnly={true} />
+                          <button
+                            type="button"
+                            className="pin-toggle-btn"
+                            onClick={() => handleToggleFixar(av.id)}
+                            title="Fixar comentário em destaque no perfil"
+                          >
+                            {av.fixado ? "★ Em destaque" : "Fixar no topo"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {av.fixado && (
+                        <div className="pinned-badge">
+                          📌 Comentário em destaque pelo anunciante
+                        </div>
+                      )}
+
+                      {av.comentario && (
+                        <p style={{ fontSize: "14px", color: "var(--primary-dark)", lineHeight: "1.5", margin: 0 }}>
+                          "{av.comentario}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             <div className="side-panel-card support-bg">
-              <div className="side-panel-title">Resumo de atividade</div>
+              <div className="side-panel-title">Métricas de atividade</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "8px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "14px", color: "var(--primary-dark)" }}>Anúncios ativos</span>
                   <strong style={{ fontSize: "18px", color: "var(--primary-dark)" }}>{perfil?.totalAtivos ?? 0} / 5</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "14px", color: "var(--primary-dark)" }}>Negociações concluídas</span>
-                  <strong style={{ fontSize: "18px", color: "var(--primary)" }}>{perfil?.totalConcluidos ?? 0}</strong>
+                  <span style={{ fontSize: "14px", color: "var(--primary-dark)" }}>Pedidos de interesse feitos</span>
+                  <strong style={{ fontSize: "18px", color: "var(--primary-dark)" }}>{perfil?.totalPedidosRealizados ?? 0}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "14px", color: "var(--primary-dark)" }}>Produtos negociados</span>
+                  <strong style={{ fontSize: "18px", color: "var(--primary)" }}>{perfil?.totalProdutosNegociados ?? 0}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "14px", color: "var(--primary-dark)" }}>Média de avaliações</span>
+                  <strong style={{ fontSize: "18px", color: "#f59e0b" }}>★ {perfil?.mediaAvaliacoes || "—"}</strong>
                 </div>
               </div>
             </div>
 
             <div className="side-panel-card">
-              <div className="side-panel-title">Foto de perfil</div>
+              <div className="side-panel-title">Comentário em destaque</div>
               <div className="side-panel-desc">
-                Sua foto de perfil fica visível no menu lateral e facilita a identificação quando outros estudantes forem encontrá-lo pessoalmente para concluir a troca ou entrega do item.
+                No perfil do aluno anunciante, você pode fixar um único comentário recebido em destaque. Ao fixar outro, ele substitui automaticamente o destaque anterior.
               </div>
             </div>
           </div>

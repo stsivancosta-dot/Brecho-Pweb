@@ -19,12 +19,13 @@ module.exports = (sequelize) =>
         allowNull: false
       },
       preco: { type: DataTypes.DECIMAL(10, 2), allowNull: false, defaultValue: 0 },
+      foto_url: { type: DataTypes.STRING(260), allowNull: true },
+      fotos: { type: DataTypes.JSONB, allowNull: true, defaultValue: [] },
       status: {
         type: DataTypes.ENUM(...STATUS_ANUNCIO),
         allowNull: false,
         defaultValue: "DISPONIVEL"
       },
-      foto_url: { type: DataTypes.STRING(260), allowNull: true },
       concluido_em: { type: DataTypes.DATE, allowNull: true },
       cancelado_em: { type: DataTypes.DATE, allowNull: true }
     },

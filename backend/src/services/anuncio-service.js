@@ -10,7 +10,7 @@ const {
   optionalCondition
 } = require("./validation");
 
-const authorInclude = [{ association: "autor", attributes: ["id", "nome", "email"] }];
+const authorInclude = [{ association: "autor", attributes: ["id", "nome", "email", "foto_perfil"] }];
 
 async function listAnnouncements(query) {
   await expireDueReservationsNow();
@@ -43,9 +43,22 @@ async function getAnnouncement(id) {
   return serializeAnuncio(announcement);
 }
 
-async function createAnnouncement(authorId, body, filename) {
+async function createAnnouncement(authorId, body, filesData) {
   const attributes = announcementPayload(body);
-  if (filename) attributes.foto_url = filename;
+
+  // Tratamento de fotos (arquivo único ou múltiplos para carrossel)
+  let fotos = [];
+  if (Array.isArray(filesData) && filesData.length > 0) {
+    fotos = filesData;
+  } else if (typeof filesData === "string" && filesData) {
+    fotos = [filesData];
+  }
+
+  if (fotos.length > 0) {
+    attributes.foto_url = fotos[0]; // Capa
+    attributes.fotos = fotos;
+  }
+
   const { sequelize, Aluno, Anuncio } = getDatabase();
   return sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE }, async (transaction) => {
     await Aluno.findByPk(authorId, { transaction, lock: transaction.LOCK.UPDATE });
@@ -58,9 +71,21 @@ async function createAnnouncement(authorId, body, filename) {
   });
 }
 
-async function updateAnnouncement(id, authorId, body, filename) {
+async function updateAnnouncement(id, authorId, body, filesData) {
   const attributes = announcementPayload(body, true);
-  if (filename) attributes.foto_url = filename;
+
+  let fotos = [];
+  if (Array.isArray(filesData) && filesData.length > 0) {
+    fotos = filesData;
+  } else if (typeof filesData === "string" && filesData) {
+    fotos = [filesData];
+  }
+
+  if (fotos.length > 0) {
+    attributes.foto_url = fotos[0];
+    attributes.fotos = fotos;
+  }
+
   const { sequelize, Anuncio } = getDatabase();
   return sequelize.transaction(async (transaction) => {
     const announcement = await Anuncio.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
@@ -73,9 +98,9 @@ async function updateAnnouncement(id, authorId, body, filename) {
 }
 
 async function cancelAnnouncement(id, authorId) {
-  const { sequelize, Anuncio, Reserva } = getDatabase();
+  const { sequelize, Anuncio } = getDatabase();
   return sequelize.transaction(async (transaction) => {
-    await expireDueReservations(transaction);
+    await expireDueReservationsNow();
     const announcement = await Anuncio.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE });
     if (!announcement) throw new AppError(404, "ANUNCIO_NAO_ENCONTRADO", "Anúncio não encontrado.");
     if (announcement.autor_id !== authorId) throw new AppError(403, "SEM_AUTORIA", "Você não pode cancelar este anúncio.");
@@ -96,4 +121,11 @@ async function listMyAnnouncements(authorId, status) {
   return records.map((record) => serializeAnuncio(record, false));
 }
 
-module.exports = { cancelAnnouncement, createAnnouncement, getAnnouncement, listAnnouncements, listMyAnnouncements, updateAnnouncement };
+module.exports = {
+  cancelAnnouncement,
+  createAnnouncement,
+  getAnnouncement,
+  listAnnouncements,
+  listMyAnnouncements,
+  updateAnnouncement
+};
